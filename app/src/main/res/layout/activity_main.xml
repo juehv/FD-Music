@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.MainActivity"
+    android:orientation="vertical">
+
+    <!--
+    <com.google.android.exoplayer2.ui.StyledPlayerControlView
+        android:id="@+id/playerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+        app:layout_constraintTop_toBottomOf="@id/playerView"
+        -->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/titlesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/speedLayout"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/speedLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="15dp"
+        android:paddingTop="5dp"
+        app:layout_constraintBottom_toTopOf="@id/leedTimeLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+            android:id="@+id/speedLabel"
+            android:layout_width="70dp"
+            android:textAlignment="textStart"
+            android:layout_height="wrap_content"
+            android:text="@string/speed_label"
+            tools:layout_editor_absoluteY="13dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:paddingTop="10dp"/>
+
+        <androidx.appcompat.widget.AppCompatSeekBar
+            android:id="@+id/speedSlider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:progressDrawable="@android:color/transparent"
+            android:progress="50"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/speedLabel"
+            app:layout_constraintRight_toLeftOf="@id/speedValueText" />
+
+        <TextView
+            android:id="@+id/speedValueText"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:text="@string/speed_value"
+            android:textAlignment="textEnd"
+            tools:layout_editor_absoluteY="13dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/leedTimeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="15dp"
+        app:layout_constraintBottom_toTopOf="@id/controlsLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+
+        <TextView
+            android:id="@+id/leadTimeLabel"
+            android:layout_width="70dp"
+            android:textAlignment="textStart"
+            android:layout_height="wrap_content"
+            android:text="@string/lead_time_label"
+            tools:layout_editor_absoluteY="13dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatSeekBar
+            android:id="@+id/leadTimeSlider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:progressDrawable="@android:color/transparent"
+            android:progress="25"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/leadTimeLabel"
+            app:layout_constraintRight_toLeftOf="@id/leatTimeValueText" />
+
+        <TextView
+            android:id="@+id/leatTimeValueText"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:text="@string/leat_time_value"
+            android:textAlignment="textEnd"
+            tools:layout_editor_absoluteY="13dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/controlsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/stopButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/stop_button_label"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/loopButton" />
+
+        <ToggleButton
+            android:id="@+id/loopButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textOff="@string/not_looping_label"
+            android:textOn="@string/looping_label"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/stopButton"
+            app:layout_constraintRight_toLeftOf="@+id/continueButton" />
+
+        <ToggleButton
+            android:id="@+id/continueButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textOff="@string/not_continuing_label"
+            android:textOn="@string/continuing_label"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/loopButton"
+            app:layout_constraintRight_toRightOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

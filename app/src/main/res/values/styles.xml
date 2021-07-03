@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name = "cardStyle">
+        <attr name="cardStyle" format="reference" />
+    </declare-styleable>
+
+    <style name="ProgressBarSoundNotificatonTheme" parent="Theme.AppCompat.Light.DarkActionBar" />
+
+    <style name="TitleTextSoundNotificatonTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:textColor">@color/notification_color_title_text</item>
+    </style>
+
+    <style name="CardView.Grey" parent="CardView.Light">
+        <item name="cardBackgroundColor">@color/light_grey</item>
+    </style>
+</resources>
