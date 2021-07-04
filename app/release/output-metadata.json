@@ -5,7 +5,7 @@
     "kind": "Directory"
   },
   "applicationId": "de.heoegbr.fdmusic",
-  "variantName": "processReleaseResources",
+  "variantName": "release",
   "elements": [
     {
       "type": "SINGLE",
