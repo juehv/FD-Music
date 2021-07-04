@@ -43,6 +43,7 @@ public class MusicConstants {
 
     //FIXME lazy db --> should be loaded from a file or so ...
     public static int MUSIC_OFFSET = 21000;
+    //FIXME this wants to be removed an replaced by FORMATION_DATA.entries
     public static List<MusicEntryPoint> MUSIC_ENTRY_POINTS = new ArrayList<>();
     public static FormationData FORMATION_DATA = null;
 

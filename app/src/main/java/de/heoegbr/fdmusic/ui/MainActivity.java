@@ -53,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar leadTimeSlider;
     private SeekBar speedSlider;
 
+    private float mSpeed = 1.0f;
+    private int mLeadTimeInSeconds = 5;
+
     public static boolean isPermissionsGrandedAndSetupWizardCompleted(Context context) {
         boolean permission = context.checkSelfPermission(
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -75,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         }.getType());
 
         if (fData == null) {
-            // TODO open error dialog and exit app
+            // this should not happen ... (at least if data is prepared correctly)
             PreferenceManager.getDefaultSharedPreferences(context).edit()
                     .putInt(SetupActivity.SETUP_COMPLETE_KEY, 0).apply();
 
@@ -96,8 +99,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putFloat(MusicConstants.KEY_EXTRA.SPEED, mSpeed);
+        outState.putInt(MusicConstants.KEY_EXTRA.LEAD_TIME, mLeadTimeInSeconds);
+    }
+
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mSpeed = savedInstanceState.getFloat(MusicConstants.KEY_EXTRA.SPEED, 1.0f);
+            mLeadTimeInSeconds = savedInstanceState.getInt(MusicConstants.KEY_EXTRA.LEAD_TIME, 5);
+        }
 
         // don't build this gui if we go to setup wizard
         if (!isPermissionsGrandedAndSetupWizardCompleted(getApplicationContext())) {
@@ -160,12 +175,12 @@ public class MainActivity extends AppCompatActivity {
         speedSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float speed = (((float) progress / 250.0f) + 0.8f);
-                speedValueText.setText(String.format("%d %%", Math.round(speed * 100)));
+                mSpeed = (((float) progress / 250.0f) + 0.8f);
+                speedValueText.setText(String.format("%d %%", Math.round(mSpeed * 100)));
 
                 Intent propIntent = new Intent(getApplicationContext(), SoundService.class);
                 propIntent.setAction(MusicConstants.ACTION.SPEED_CHANGE_ACTION);
-                propIntent.putExtra(MusicConstants.KEY_EXTRA.SPEED, speed);
+                propIntent.putExtra(MusicConstants.KEY_EXTRA.SPEED, mSpeed);
                 PendingIntent lPendingPropIntent = PendingIntent.getService(getApplicationContext(), 2, propIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 try {
                     lPendingPropIntent.send();
@@ -191,12 +206,12 @@ public class MainActivity extends AppCompatActivity {
         leadTimeSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                int leadTimeInSeconds = Math.round(progress / 5);
-                leadTimeValueText.setText(String.format("%d s", leadTimeInSeconds));
+                mLeadTimeInSeconds = Math.round(progress / 5);
+                leadTimeValueText.setText(String.format("%d s", mLeadTimeInSeconds));
 
                 Intent propIntent = new Intent(getApplicationContext(), SoundService.class);
                 propIntent.setAction(MusicConstants.ACTION.LT_CHANGE_ACTION);
-                propIntent.putExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, leadTimeInSeconds);
+                propIntent.putExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, mLeadTimeInSeconds);
                 PendingIntent lPendingPropIntent = PendingIntent.getService(getApplicationContext(), 1, propIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 try {
                     lPendingPropIntent.send();
@@ -245,6 +260,10 @@ public class MainActivity extends AppCompatActivity {
                 Intent playIntent = new Intent(v.getContext(), SoundService.class);
                 playIntent.setAction(MusicConstants.ACTION.PLAY_ACTION);
                 playIntent.putExtra(MusicConstants.KEY_EXTRA.POSITION, position);
+                playIntent.putExtra(MusicConstants.KEY_EXTRA.CONTINUE, continueButton.isChecked());
+                playIntent.putExtra(MusicConstants.KEY_EXTRA.LOOP, loopButton.isChecked());
+                playIntent.putExtra(MusicConstants.KEY_EXTRA.SPEED, mSpeed);
+                playIntent.putExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, mLeadTimeInSeconds);
                 PendingIntent lPendingPlayIntent = PendingIntent.getService(v.getContext(), 0, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 try {
                     lPendingPlayIntent.send();

@@ -110,6 +110,11 @@ public class SoundService extends Service implements MediaPlayer.OnErrorListener
                 Log.i(TAG, "Received start Intent ");
                 sStateService = MusicConstants.STATE_SERVICE.PREPARE;
 
+                mSpeed = intent.getFloatExtra(MusicConstants.KEY_EXTRA.SPEED, 1f);
+                mLeadTime = intent.getIntExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, 5);
+                mLoop = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.LOOP, false);
+                mContinue = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.CONTINUE, false);
+
                 startForeground(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(
                         MusicConstants.MUSIC_ENTRY_POINTS.get(mPlayingPosition).label
                 ));
