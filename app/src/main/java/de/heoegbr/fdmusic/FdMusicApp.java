@@ -7,6 +7,16 @@ import android.content.pm.PackageManager;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.InputStreamReader;
+import java.io.Reader;
+
+import de.heoegbr.fdmusic.data.FormationData;
+import de.heoegbr.fdmusic.data.FormationDataAdapter;
+import de.heoegbr.fdmusic.data.MusicConstants;
 import de.heoegbr.fdmusic.ui.MainActivity;
 
 public class FdMusicApp extends Application {
@@ -15,14 +25,6 @@ public class FdMusicApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "On Create");
-
-        if (MainActivity.isPermissionsGrandedAndSetupWizardCompleted(getApplicationContext()))
-            initializeApp(getApplicationContext());
-    }
-
-    public void initializeApp(Context context) {
-        //TODO prepare sound files
-        // dynamic loading of sound file and meta data for later
+        Log.d(TAG, "On Create App");
     }
 }

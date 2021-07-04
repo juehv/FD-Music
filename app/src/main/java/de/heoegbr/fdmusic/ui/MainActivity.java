@@ -1,6 +1,7 @@
 package de.heoegbr.fdmusic.ui;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -22,12 +23,19 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.InputStreamReader;
 import java.util.List;
 
 import de.heoegbr.fdmusic.BuildConfig;
 import de.heoegbr.fdmusic.R;
-import de.heoegbr.fdmusic.data.EntryPoint;
+import de.heoegbr.fdmusic.data.FormationData;
+import de.heoegbr.fdmusic.data.FormationDataAdapter;
 import de.heoegbr.fdmusic.data.MusicConstants;
+import de.heoegbr.fdmusic.data.MusicEntryPoint;
 import de.heoegbr.fdmusic.player.SoundService;
 import de.heoegbr.fdmusic.ui.setup.SetupActivity;
 
@@ -58,6 +66,35 @@ public class MainActivity extends AppCompatActivity {
         return permission && completed;
     }
 
+    public void initializeApp(Context context) {
+        //TODO load from somewhere but not from ressources
+
+        InputStreamReader reader = new InputStreamReader(context.getResources().openRawResource(R.raw.meta));
+        Gson gson = new GsonBuilder().registerTypeAdapter(FormationData.class, new FormationDataAdapter()).create();
+        FormationData fData = gson.fromJson(reader, new TypeToken<FormationData>() {
+        }.getType());
+
+        if (fData == null) {
+            // TODO open error dialog and exit app
+            PreferenceManager.getDefaultSharedPreferences(context).edit()
+                    .putInt(SetupActivity.SETUP_COMPLETE_KEY, 0).apply();
+
+            // inform user
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setMessage(R.string.main_nodatadialog_text)
+                    .setTitle(R.string.main_nodatadialog_title)
+                    .setPositiveButton(R.string.ok_button, (dialogInterface, i) -> {
+                        finishAndRemoveTask();
+                        System.exit(0);
+                    });
+            builder.create().show();
+        }
+
+        // todo find cleaner solution
+        MusicConstants.MUSIC_ENTRY_POINTS = fData.entryPoints;
+        MusicConstants.FORMATION_DATA = fData;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(MainActivity.this, SetupActivity.class));
             return;
         }
+        initializeApp(getApplicationContext());
 
         setContentView(R.layout.activity_main);
 
@@ -185,10 +223,10 @@ public class MainActivity extends AppCompatActivity {
 
     public class MusicViewAdapter extends RecyclerView.Adapter<MusicEntryPointViewHolder> {
 
-        List<EntryPoint> musicEntryPoints;
+        List<MusicEntryPoint> musicMusicEntryPoints;
 
-        MusicViewAdapter(List<EntryPoint> musicEntryPoints) {
-            this.musicEntryPoints = musicEntryPoints;
+        MusicViewAdapter(List<MusicEntryPoint> musicMusicEntryPoints) {
+            this.musicMusicEntryPoints = musicMusicEntryPoints;
         }
 
         @NonNull
@@ -201,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull MusicEntryPointViewHolder holder, int position) {
-            holder.label.setText(musicEntryPoints.get(position).label);
+            holder.label.setText(musicMusicEntryPoints.get(position).label);
 
             holder.itemView.setOnClickListener(v -> {
                 Intent playIntent = new Intent(v.getContext(), SoundService.class);

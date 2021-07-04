@@ -1,14 +1,16 @@
 <resources>
     <!-- Main Activity" -->
-    <string name="speed_label">Speed</string>
-    <string name="speed_value">100%</string>
-    <string name="lead_time_label">Lead Time</string>
-    <string name="leat_time_value">5s</string>
-    <string name="stop_button_label">Stop</string>
-    <string name="not_looping_label">Not Looping</string>
-    <string name="looping_label">Looping</string>
-    <string name="not_continuing_label">Not Continuing</string>
-    <string name="continuing_label">Continuing</string>
+    <string name="main_speed_label">Speed</string>
+    <string name="main_speed_value">100%</string>
+    <string name="main_lead_time_label">Lead Time</string>
+    <string name="main_lead_time_value">5s</string>
+    <string name="main_stop_button_label">Stop</string>
+    <string name="main_not_looping_label">Not Looping</string>
+    <string name="main_looping_label">Looping</string>
+    <string name="main_not_continuing_label">Not Continuing</string>
+    <string name="main_continuing_label">Continuing</string>
+    <string name="main_nodatadialog_title">Cannot load music data!</string>
+    <string name="main_nodatadialog_text">Please make sure setup process was completed correctly.</string>
 
     <!-- Setup Wizard" -->
     <string name="setupwizard_welcome_text">"### Welcome to FD Music!  \nWelcome to the beta test of FD Music, an application to simplify the handling of your training music. \n\nAfter a few simple setup steps the app is ready to use. This wizard will guide you through the process."</string>
