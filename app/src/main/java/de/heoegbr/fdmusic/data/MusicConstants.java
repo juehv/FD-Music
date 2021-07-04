@@ -14,6 +14,11 @@ public class MusicConstants {
     //FIXME hacked version of password correct visualization; as we replace this screen soon, I don't care for now
     public static boolean THIS_IS_A_HACK = false;
 
+    // State management for one instance of the app (don't want to use preferences for that)
+    public static boolean APP_INITIALIZED = false;
+    public static float TMP_BACKUP_SPEED = 1.0f;
+    public static int TMP_BACKUP_LEAD_TIME = 5;
+
     public static class ACTION {
         public static final String MAIN_ACTION = "music.action.main";
         public static final String PAUSE_ACTION = "music.action.pause";

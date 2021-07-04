@@ -70,8 +70,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void initializeApp(Context context) {
-        //TODO load from somewhere but not from ressources
+        if (MusicConstants.APP_INITIALIZED){
+            return;
+        }
 
+        //TODO load from somewhere but not from ressources
         InputStreamReader reader = new InputStreamReader(context.getResources().openRawResource(R.raw.meta));
         Gson gson = new GsonBuilder().registerTypeAdapter(FormationData.class, new FormationDataAdapter()).create();
         FormationData fData = gson.fromJson(reader, new TypeToken<FormationData>() {
@@ -96,23 +99,20 @@ public class MainActivity extends AppCompatActivity {
         // todo find cleaner solution
         MusicConstants.MUSIC_ENTRY_POINTS = fData.entryPoints;
         MusicConstants.FORMATION_DATA = fData;
+        MusicConstants.APP_INITIALIZED = true;
     }
 
     @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putFloat(MusicConstants.KEY_EXTRA.SPEED, mSpeed);
-        outState.putInt(MusicConstants.KEY_EXTRA.LEAD_TIME, mLeadTimeInSeconds);
-    }
+    protected void onPause() {
+        super.onPause();
 
+        MusicConstants.TMP_BACKUP_LEAD_TIME = mLeadTimeInSeconds;
+        MusicConstants.TMP_BACKUP_SPEED = mSpeed;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (savedInstanceState != null) {
-            mSpeed = savedInstanceState.getFloat(MusicConstants.KEY_EXTRA.SPEED, 1.0f);
-            mLeadTimeInSeconds = savedInstanceState.getInt(MusicConstants.KEY_EXTRA.LEAD_TIME, 5);
-        }
 
         // don't build this gui if we go to setup wizard
         if (!isPermissionsGrandedAndSetupWizardCompleted(getApplicationContext())) {
@@ -120,6 +120,9 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         initializeApp(getApplicationContext());
+
+        mSpeed = MusicConstants.TMP_BACKUP_SPEED;
+        mLeadTimeInSeconds = MusicConstants.TMP_BACKUP_LEAD_TIME;
 
         setContentView(R.layout.activity_main);
 
@@ -197,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
+        speedSlider.setProgress(Math.round((mSpeed - 0.8f) * 250.0f)); // set restored value
 
         leadTimeValueText = findViewById(R.id.leatTimeValueText);
         leadTimeValueText.setOnClickListener(view -> {
@@ -220,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
@@ -228,6 +233,7 @@ public class MainActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
+        leadTimeSlider.setProgress(Math.round(mLeadTimeInSeconds*5)); // set restored value
     }
 
     @Override
