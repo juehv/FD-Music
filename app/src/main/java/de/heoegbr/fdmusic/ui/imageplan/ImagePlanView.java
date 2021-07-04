@@ -3,7 +3,6 @@ package de.heoegbr.fdmusic.ui.imageplan;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.util.AttributeSet;
@@ -59,7 +58,7 @@ public class ImagePlanView extends View {
     private SortedMap<Integer, Image> images = new TreeMap<>();
 
 
-    class ImageInTime {
+    class ImageAtTime {
         public int time;
         public Image image;
     }
@@ -96,10 +95,28 @@ public class ImagePlanView extends View {
         // Load the images.
         Reader reader = new InputStreamReader(context.getResources().openRawResource(R.raw.images));
         Gson gson = new GsonBuilder().registerTypeAdapter(Image.class, new ImageDeserializer()).create();
-        Type listType = new TypeToken<List<ImageInTime>>() {}.getType();
+        Type listType = new TypeToken<List<ImageAtTime>>() {}.getType();
 
-        List<ImageInTime> imageList = gson.fromJson(reader, listType);
+        List<ImageAtTime> imageList = gson.fromJson(reader, listType);
         imageList.forEach(i -> images.put(i.time, i.image));
+    }
+
+    public void skipToNextImage() {
+        if (timeInMusic != null) {
+            SortedMap<Integer, Image> tailMap = images.tailMap(timeInMusic + 1);
+
+            if (!tailMap.isEmpty())
+                setTimeInMusic(tailMap.firstKey());
+        }
+    }
+
+    public void skipToPreviousImage() {
+        if (timeInMusic != null) {
+            SortedMap<Integer, Image> headMap = images.headMap(timeInMusic);
+
+            if (!headMap.isEmpty())
+                setTimeInMusic(headMap.lastKey());
+        }
     }
 
     public void setTimeInMusic(int timeInMusic) {
@@ -144,7 +161,7 @@ public class ImagePlanView extends View {
             if (Math.abs(meter) != FLOOR_SIZE) {
                 paint.setTextSize(METER_MARKING_SIZE * 0.66f);
                 paint.setAntiAlias(true);
-                canvas.drawText(String.format("%d", Math.abs(meter)), currentWidth - (METER_MARKING_SIZE / 4), METER_MARKING_SIZE / 2, paint);
+                canvas.drawText(String.format("%d", Math.abs(meter)), currentWidth - (METER_MARKING_SIZE / 4.0f), METER_MARKING_SIZE / 2.0f, paint);
             }
 
             currentWidth += widthInterval;
@@ -160,7 +177,7 @@ public class ImagePlanView extends View {
             if (Math.abs(meter) != FLOOR_SIZE) {
                 paint.setTextSize(METER_MARKING_SIZE * 0.66f);
                 paint.setAntiAlias(true);
-                canvas.drawText(String.format("%d", Math.abs(meter)), METER_MARKING_SIZE / 4, currentDepth + (METER_MARKING_SIZE / 2), paint);
+                canvas.drawText(String.format("%d", Math.abs(meter)), METER_MARKING_SIZE / 4.0f, currentDepth + (METER_MARKING_SIZE / 4.0f), paint);
             }
 
             currentDepth += depthInterval;
@@ -245,7 +262,7 @@ public class ImagePlanView extends View {
 
         paint.setColor(Color.WHITE);
         paint.setTextSize(POSITION_SIZE * 1.5f);
-        canvas.drawText(positionName, x - (POSITION_SIZE / 2), y + (POSITION_SIZE / 2), paint);
+        canvas.drawText(positionName, x - (POSITION_SIZE / 2.0f), y + (POSITION_SIZE / 2.0f), paint);
     }
 
     private float convertDepthMetersToPixels(float depth) {
