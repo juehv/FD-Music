@@ -1,11 +1,13 @@
 package de.heoegbr.fdmusic.ui;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
@@ -23,12 +26,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import de.heoegbr.fdmusic.BuildConfig;
 import de.heoegbr.fdmusic.R;
 import de.heoegbr.fdmusic.data.EntryPoint;
 import de.heoegbr.fdmusic.data.MusicConstants;
 import de.heoegbr.fdmusic.player.SoundService;
+import de.heoegbr.fdmusic.ui.imageplan.ImagePlanFragment;
 import de.heoegbr.fdmusic.ui.setup.SetupActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -44,6 +50,10 @@ public class MainActivity extends AppCompatActivity {
 
     private SeekBar leadTimeSlider;
     private SeekBar speedSlider;
+
+    Timer timer;
+    int currentTimeInMusic;
+    long lastTime;
 
     public static boolean isPermissionsGrandedAndSetupWizardCompleted(Context context) {
         boolean permission = context.checkSelfPermission(
@@ -61,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        currentTimeInMusic = 0;
 
         // don't build this gui if we go to setup wizard
         if (!isPermissionsGrandedAndSetupWizardCompleted(getApplicationContext())) {
@@ -85,6 +97,11 @@ public class MainActivity extends AppCompatActivity {
                 pendingStopIntent.send();
             } catch (PendingIntent.CanceledException e) {
                 e.printStackTrace();
+            }
+
+            if (timer != null) {
+                timer.cancel();
+                timer = null;
             }
         });
 
@@ -181,6 +198,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         //TODO kill foreground service ? Or is OnDestroy also called while foreground service is running intentionally...
+
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
     }
 
     public class MusicViewAdapter extends RecyclerView.Adapter<MusicEntryPointViewHolder> {
@@ -213,6 +235,35 @@ public class MainActivity extends AppCompatActivity {
                 } catch (PendingIntent.CanceledException e) {
                     Log.e(TAG, e.getMessage());
                 }
+
+                // Start checking regularly for whether we need to update the image plan.
+                // TODO: What is MUSIC_OFFSET for?
+                int startTime = MusicConstants.MUSIC_ENTRY_POINTS.get(position).start;
+
+                int leadTime = Math.round(leadTimeSlider.getProgress() / 5) * 1000;
+                // The lead time can't be longer than the offset from start.
+                leadTime = Math.min(leadTime, startTime);
+
+                currentTimeInMusic = startTime - MusicConstants.MUSIC_OFFSET - leadTime;
+                lastTime = System.currentTimeMillis();
+
+                timer = new Timer();
+                timer.scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                        float speed = (((float) speedSlider.getProgress() / 250.0f) + 0.8f);
+
+                        long now = System.currentTimeMillis();
+                        currentTimeInMusic = (int) (currentTimeInMusic + speed * (now - lastTime));
+                        lastTime = now;
+
+                        // Tell the fragment what time it is and let it update itself.
+                        // TODO: It is also possible to go to the view directly...
+                        //       ...but maybe that's not a good idea because we won't always be displaying it.
+                        ImagePlanFragment fragment = (ImagePlanFragment) getFragmentManager().findFragmentById(R.id.imagePlanFragment);
+                        fragment.setTimeInMusic(currentTimeInMusic);
+                    }
+                }, 0, 20);
             });
         }
 
