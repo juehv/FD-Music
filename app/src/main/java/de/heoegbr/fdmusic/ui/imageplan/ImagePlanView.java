@@ -42,6 +42,12 @@ public class ImagePlanView extends View {
     private static final int POSITION_SIZE = 20;
 
     /**
+     * Space for the markings of meters on the side of the floor grid.
+     * TODO: This should probably be screen-dependent.
+     */
+    private static final int METER_MARKING_SIZE = 30;
+
+    /**
      * Size of the dance floor in meters from the center; assumes square floors.
      */
     private static final int FLOOR_SIZE = 8;
@@ -52,7 +58,7 @@ public class ImagePlanView extends View {
     private SortedMap<Integer, Image> images = new TreeMap<>();
 
 
-    class ImageInTime {
+    class ImageAtTime {
         public int time;
         public Image image;
     }
@@ -89,10 +95,28 @@ public class ImagePlanView extends View {
         // Load the images.
         Reader reader = new InputStreamReader(context.getResources().openRawResource(R.raw.images));
         Gson gson = new GsonBuilder().registerTypeAdapter(Image.class, new ImageDeserializer()).create();
-        Type listType = new TypeToken<List<ImageInTime>>() {}.getType();
+        Type listType = new TypeToken<List<ImageAtTime>>() {}.getType();
 
-        List<ImageInTime> imageList = gson.fromJson(reader, listType);
+        List<ImageAtTime> imageList = gson.fromJson(reader, listType);
         imageList.forEach(i -> images.put(i.time, i.image));
+    }
+
+    public void skipToNextImage() {
+        if (timeInMusic != null) {
+            SortedMap<Integer, Image> tailMap = images.tailMap(timeInMusic + 1);
+
+            if (!tailMap.isEmpty())
+                setTimeInMusic(tailMap.firstKey());
+        }
+    }
+
+    public void skipToPreviousImage() {
+        if (timeInMusic != null) {
+            SortedMap<Integer, Image> headMap = images.headMap(timeInMusic);
+
+            if (!headMap.isEmpty())
+                setTimeInMusic(headMap.lastKey());
+        }
     }
 
     public void setTimeInMusic(int timeInMusic) {
@@ -107,7 +131,7 @@ public class ImagePlanView extends View {
 
         Paint paint = new Paint();
 
-        drawGrid(paint, canvas);
+        drawFloorGrid(paint, canvas);
         drawPositions(paint, canvas);
     }
 
@@ -118,7 +142,7 @@ public class ImagePlanView extends View {
         super.onMeasure(widthMeasureSpec, widthMeasureSpec);
     }
 
-    private void drawGrid(Paint paint, Canvas canvas) {
+    private void drawFloorGrid(Paint paint, Canvas canvas) {
         int height = getHeight();
         int width = getWidth();
 
@@ -128,20 +152,34 @@ public class ImagePlanView extends View {
         paint.setColor(Color.DKGRAY);
 
         // Draw lines for every meter of width ("Breite").
-        float currentWidth = 0.0f;
+        float currentWidth = METER_MARKING_SIZE;
 
-        for (int meter = -FLOOR_SIZE; meter < FLOOR_SIZE; meter++) {
+        for (int meter = -FLOOR_SIZE; meter <= FLOOR_SIZE; meter++) {
             paint.setStrokeWidth(getThicknessOfMeterLine(meter));
-            canvas.drawLine(currentWidth, 0.0f, currentWidth, (float) height, paint);
+            canvas.drawLine(currentWidth, METER_MARKING_SIZE, currentWidth, (float) height - METER_MARKING_SIZE, paint);
+
+            if (Math.abs(meter) != FLOOR_SIZE) {
+                paint.setTextSize(METER_MARKING_SIZE * 0.66f);
+                paint.setAntiAlias(true);
+                canvas.drawText(String.format("%d", Math.abs(meter)), currentWidth - (METER_MARKING_SIZE / 4.0f), METER_MARKING_SIZE / 2.0f, paint);
+            }
+
             currentWidth += widthInterval;
         }
 
         // Draw lines for every meter of depth ("Tiefe").
-        float currentDepth = 0.0f;
+        float currentDepth = METER_MARKING_SIZE;
 
-        for (int meter = -FLOOR_SIZE; meter < FLOOR_SIZE; meter++) {
+        for (int meter = -FLOOR_SIZE; meter <= FLOOR_SIZE; meter++) {
             paint.setStrokeWidth(getThicknessOfMeterLine(meter));
-            canvas.drawLine(0.0f, currentDepth, (float) width, currentDepth, paint);
+            canvas.drawLine(METER_MARKING_SIZE, currentDepth, (float) width - METER_MARKING_SIZE, currentDepth, paint);
+
+            if (Math.abs(meter) != FLOOR_SIZE) {
+                paint.setTextSize(METER_MARKING_SIZE * 0.66f);
+                paint.setAntiAlias(true);
+                canvas.drawText(String.format("%d", Math.abs(meter)), METER_MARKING_SIZE / 4.0f, currentDepth + (METER_MARKING_SIZE / 4.0f), paint);
+            }
+
             currentDepth += depthInterval;
         }
     }
@@ -196,13 +234,27 @@ public class ImagePlanView extends View {
             float x = lastPosition.x * (1.0f - ratio) + nextPosition.x * ratio;
             float y = lastPosition.y * (1.0f - ratio) + nextPosition.y * ratio;
 
+            // Draw paths from the current position to the next position.
+            drawPath(ratio, x, y, nextPosition.x, nextPosition.y, paint, canvas);
             drawPosition(position, x, y, paint, canvas);
         }
     }
+    
+    private void drawPath(float ratio, float curDepth, float curWidth, float nextDepth, float nextWidth, Paint paint, Canvas canvas) {
+        paint.setStrokeWidth(5.0f);
+        paint.setColor(Color.BLUE);
+        paint.setAlpha((int) ((1.0f - ratio) * 64));
+        canvas.drawLine(
+                convertDepthMetersToPixels(curDepth),
+                convertWidthMetersToPixels(curWidth),
+                convertDepthMetersToPixels(nextDepth),
+                convertWidthMetersToPixels(nextWidth),
+                paint);
+    }
 
     private void drawPosition(String positionName, float depth, float width, Paint paint, Canvas canvas) {
-        float x = getDepthInterval() * (depth + FLOOR_SIZE);
-        float y = getWidthInterval() * (-width + FLOOR_SIZE);
+        float x = convertDepthMetersToPixels(depth);
+        float y = convertWidthMetersToPixels(width);
 
         paint.setColor(Color.BLUE);
         paint.setAntiAlias(true);
@@ -210,15 +262,23 @@ public class ImagePlanView extends View {
 
         paint.setColor(Color.WHITE);
         paint.setTextSize(POSITION_SIZE * 1.5f);
-        canvas.drawText(positionName, x - (POSITION_SIZE / 2), y + (POSITION_SIZE / 2), paint);
+        canvas.drawText(positionName, x - (POSITION_SIZE / 2.0f), y + (POSITION_SIZE / 2.0f), paint);
+    }
+
+    private float convertDepthMetersToPixels(float depth) {
+        return METER_MARKING_SIZE + getDepthInterval() * (depth + FLOOR_SIZE);
+    }
+
+    private float convertWidthMetersToPixels(float width) {
+        return METER_MARKING_SIZE + getWidthInterval() * (-width + FLOOR_SIZE);
     }
 
     private float getDepthInterval() {
-        return getHeight() / (FLOOR_SIZE * 2);
+        return (getHeight() - 2 * METER_MARKING_SIZE) / (float) (FLOOR_SIZE * 2);
     }
 
     private float getWidthInterval() {
-        return getWidth() / (FLOOR_SIZE * 2);
+        return (getWidth() - 2 * METER_MARKING_SIZE) / (float) (FLOOR_SIZE * 2);
     }
 
 }
