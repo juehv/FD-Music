@@ -1,6 +1,7 @@
 package de.heoegbr.fdmusic.ui.setup;
 
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import org.jetbrains.annotations.NotNull;
 
 import de.heoegbr.fdmusic.R;
+import de.heoegbr.fdmusic.data.MusicConstants;
 import io.noties.markwon.Markwon;
 
 public class SetupWelcomeFragment extends Fragment {
@@ -60,6 +62,33 @@ public class SetupWelcomeFragment extends Fragment {
         if (textFieldEnabled) {
             textField.setVisibility(View.VISIBLE);
             textField.addTextChangedListener(textInputListener);
+
+            // FIXME remove asap
+            textField.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    try {
+                        Thread.sleep(10);
+                        if (MusicConstants.THIS_IS_A_HACK)
+                            textField.setCompoundDrawablesWithIntrinsicBounds(
+                                    0,0,R.drawable.ic_check_cycle,0);
+                        else
+                            textField.setCompoundDrawablesWithIntrinsicBounds(0,0,0,0);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
 
         aggreeSwitch = root.findViewById(R.id.setup_fragment_switch);
@@ -78,7 +107,8 @@ public class SetupWelcomeFragment extends Fragment {
         return root;
     }
 
-    void resetSwitch(){
+    void resetSwitch() {
         aggreeSwitch.setChecked(false);
     }
+
 }

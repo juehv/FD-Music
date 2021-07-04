@@ -11,6 +11,9 @@ public class MusicConstants {
     public static final long DELAY_UPDATE_NOTIFICATION_FOREGROUND_SERVICE = 10000;
     public static final String PASSPHRASE = "E60BAB61BAB2BC7A3E3A54841A6D32616734085ACB00C67D29C6C357644A3404"; //fdabteam2021
 
+    //FIXME hacked version of password correct visualization; as we replace this screen soon, I don't care for now
+    public static boolean THIS_IS_A_HACK = false;
+
     public static class ACTION {
         public static final String MAIN_ACTION = "music.action.main";
         public static final String PAUSE_ACTION = "music.action.pause";
