@@ -274,9 +274,11 @@ public class SetupActivity extends FragmentActivity {
                                 if (hexPhrase.equalsIgnoreCase(MusicConstants.PASSPHRASE)) {
                                     prefs.edit().putBoolean(SETUP_PAYWALL_KEY, true).apply();
                                     Log.i(TAG, "PW confirmed");
+                                    MusicConstants.THIS_IS_A_HACK = true;
                                 } else {
                                     prefs.edit().putBoolean(SETUP_PAYWALL_KEY, false).apply();
                                     Log.i(TAG, "PW NOT confirmed");
+                                    MusicConstants.THIS_IS_A_HACK = false;
                                 }
                             }
                         }
@@ -290,6 +292,8 @@ public class SetupActivity extends FragmentActivity {
                             false, null);
                     break;
 
+                default:
+                    throw new IllegalStateException("Unexpected value: " + position);
             }
             if (returnFragment != null) {
                 fragmentStorage.put(position, returnFragment);

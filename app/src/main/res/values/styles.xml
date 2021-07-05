@@ -3,14 +3,29 @@
     <declare-styleable name = "cardStyle">
         <attr name="cardStyle" format="reference" />
     </declare-styleable>
-
-    <style name="ProgressBarSoundNotificatonTheme" parent="Theme.AppCompat.Light.DarkActionBar" />
-
-    <style name="TitleTextSoundNotificatonTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="android:textColor">@color/notification_color_title_text</item>
-    </style>
-
     <style name="CardView.Grey" parent="CardView.Light">
         <item name="cardBackgroundColor">@color/light_grey</item>
+    </style>
+
+    <declare-styleable name = "barStyle">
+        <attr name="barStyle" format="reference" />
+    </declare-styleable>
+    <style name="Seekbar.NoProgress.Light" parent="Widget.AppCompat.SeekBar">
+        <item name="android:progressTint">#00000000</item>
+        <item name="android:progressBackgroundTint">#FFDADADA</item>
+    </style>
+    <style name="Seekbar.NoProgress.Dark" parent="Widget.AppCompat.SeekBar">
+        <item name="android:progressTint">#00000000</item>
+        <item name="android:progressBackgroundTint">#FFDADADA</item>
+    </style>
+
+    <declare-styleable name = "notificationTextColor">
+        <attr name="notificationTextColor" format="reference" />
+    </declare-styleable>
+    <style name="NotificationTextview.Light" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">#FFAAAAAA</item>
+    </style>
+    <style name="NotificationTextview.Dark" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">#FFAAAAAA</item>
     </style>
 </resources>

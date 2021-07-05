@@ -20,7 +20,6 @@
             android:src="@android:drawable/ic_media_play" />
 
         <LinearLayout
-            android:id="@+id/linearLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -35,7 +34,8 @@
                 android:paddingEnd="7dp"
                 android:text="@string/app_name"
                 android:textSize="16sp"
-                android:theme="@style/TitleTextSoundNotificatonTheme" />
+                android:textColor="#828282" />
+            <!-- FIXME the static color is a quick fix, as the view does not react on dark/light theme configuration :( -->
 
             <TextView
                 android:id="@+id/notification_message"
@@ -60,13 +60,12 @@
             android:layout_alignEnd="@+id/ui_notification_player_button"
             android:layout_alignStart="@+id/ui_notification_player_button"
             android:layout_alignTop="@+id/ui_notification_player_button"
-            android:indeterminate="true"
-            android:theme="@style/ProgressBarSoundNotificatonTheme" />
+            android:indeterminate="true" />
 
         <ImageButton
             android:id="@+id/ui_notification_close_button"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:layout_marginEnd="5dp"

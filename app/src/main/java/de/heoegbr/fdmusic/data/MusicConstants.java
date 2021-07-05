@@ -17,6 +17,14 @@ public class MusicConstants {
     public static final long DELAY_UPDATE_NOTIFICATION_FOREGROUND_SERVICE = 10000;
     public static final String PASSPHRASE = "E60BAB61BAB2BC7A3E3A54841A6D32616734085ACB00C67D29C6C357644A3404"; //fdabteam2021
 
+    //FIXME hacked version of password correct visualization; as we replace this screen soon, I don't care for now
+    public static boolean THIS_IS_A_HACK = false;
+
+    // State management for one instance of the app (don't want to use preferences for that)
+    public static boolean APP_INITIALIZED = false;
+    public static float TMP_BACKUP_SPEED = 1.0f;
+    public static int TMP_BACKUP_LEAD_TIME = 5;
+
     public static class ACTION {
         public static final String MAIN_ACTION = "music.action.main";
         public static final String PAUSE_ACTION = "music.action.pause";
@@ -46,28 +54,29 @@ public class MusicConstants {
 
     //FIXME lazy db --> should be loaded from a file or so ...
     public static int MUSIC_OFFSET = 21000;
-    public static List<EntryPoint> MUSIC_ENTRY_POINTS = new ArrayList<>();
+    //FIXME this wants to be removed an replaced by FORMATION_DATA.entries
+    public static List<MusicEntryPoint> MUSIC_ENTRY_POINTS = new ArrayList<>();
+    public static FormationData FORMATION_DATA = null;
 
-    static {
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("All", -1, 352500));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("Gong2Gong", 46000, 310000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("Einmarsch", -1, 48000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("Tango 1", 46000, 60000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("WiWa 1", 61000, 71000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("LaWa 1", 70000, 84500));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("QS 1", 85000, 103000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("Tango 2", 103000, 119500));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("SF 1", 119000, 137500));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("LaWa 2", 136000, 158500));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("Tango 3", 162000, 190500));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("SF 2", 188000, 209000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("LaWa 3", 208000, 232000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("WiWa 2", 230000, 242000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("Tango 4", 242000, 258000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("LaWa 4", 258000, 274000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("QS 2", 273000, 283000));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("Tango 5 ", 285000, 310500));
-        MUSIC_ENTRY_POINTS.add(new EntryPoint("Ausmarsch", 313000, 352500));
-    }
-
+//    static {
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("All", -1, 352500));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("Gong2Gong", 46000, 310000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("Einmarsch", -1, 48000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("Tango 1", 46000, 60000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("WiWa 1", 61000, 71000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("LaWa 1", 70000, 84500));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("QS 1", 85000, 103000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("Tango 2", 103000, 119500));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("SF 1", 119000, 137500));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("LaWa 2", 136000, 158500));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("Tango 3", 162000, 190500));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("SF 2", 188000, 209000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("LaWa 3", 208000, 232000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("WiWa 2", 230000, 242000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("Tango 4", 242000, 258000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("LaWa 4", 258000, 274000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("QS 2", 273000, 283000));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("Tango 5 ", 285000, 310500));
+//        MUSIC_ENTRY_POINTS.add(new EntryPoint("Ausmarsch", 313000, 352500));
+//    }
 }

@@ -10,7 +10,7 @@ android {
         applicationId "de.heoegbr.fdmusic"
         minSdkVersion 26
         targetSdkVersion 30
-        versionCode 1
+        versionCode 4
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -39,7 +39,6 @@ dependencies {
 //    implementation 'com.google.android.exoplayer:exoplayer-dash:2.X.X'
 //    implementation 'com.google.android.exoplayer:exoplayer-ui:2.14.0'
 
-
     def lifecycle_version = "2.2.0"
     annotationProcessor "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
@@ -53,6 +52,12 @@ dependencies {
     // Markdown support
     final def  markwon_version = "4.4.0" //'latest_version'
     implementation  "io.noties.markwon:core:$markwon_version"
+
+    // json
+    implementation 'com.google.code.gson:gson:2.8.7'
+
+    // seekbar with indicator while sliding
+    implementation 'com.xw.repo:bubbleseekbar:3.20-lite'
 
     // testing
     testImplementation 'junit:junit:4.13.2'

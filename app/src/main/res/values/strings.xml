@@ -1,50 +1,30 @@
 <resources>
     <!-- Main Activity" -->
-    <string name="speed_label">Speed</string>
-    <string name="speed_value">100%</string>
-    <string name="lead_time_label">Lead Time</string>
-    <string name="leat_time_value">5s</string>
-    <string name="stop_button_label">Stop</string>
-    <string name="not_looping_label">Not Looping</string>
-    <string name="looping_label">Looping</string>
-    <string name="not_continuing_label">Not Continuing</string>
-    <string name="continuing_label">Continuing</string>
+    <string name="main_speed_label">Speed [%]</string>
+    <string name="main_lead_time_label">Lead Time [s]</string>
+    <string name="main_stop_button_label">Stop</string>
+    <string name="main_not_looping_label">Not Looping</string>
+    <string name="main_looping_label">Looping</string>
+    <string name="main_not_continuing_label">Not Continuing</string>
+    <string name="main_continuing_label">Continuing</string>
+    <string name="main_nodatadialog_title">Cannot load music data!</string>
+    <string name="main_nodatadialog_text">Please make sure setup process was completed correctly.</string>
 
     <!-- Setup Wizard" -->
     <string name="setupwizard_welcome_text">"### Welcome to FD Music!  \nWelcome to the beta test of FD Music, an application to simplify the handling of your training music. \n\nAfter a few simple setup steps the app is ready to use. This wizard will guide you through the process."</string>
-    <string name="setupwizard_licenseagreement_text">
-        ### License Agreement of DiaBEATit  \n
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  \n\n
-        Click [here](https://github.com/juehv/DiaBEATit/blob/master/LICENSE.txt) for the full license text.
-    </string>
-    <string name="setupwizard_datacontribution_text">The DiaBEATit app is intended for demonstration purposes and as research tool. This means in particular:  \n* It **MUST NOT** be used to make medical decisions.  \n* It will run experimental algorithms which are potentially not bug free  \n* It will gather your health data and send it to us in anonymised form.</string>
     <string name="setupwizard_storagepermission_text">### File Access  \nFD Music will save the music and some metadata on the phones storage. Therefore we need storage permission. Please press the button below and confirm the following permission dialog.</string>
-    <string name="setupwizard_locationpermission_text">### Suggestion Service  \nThe assistant service of this app will generate suggestions and reminders for treatments. Therefore the assistant will observer health data and your daily routine including locations. Therefore we need permanent location permission. This data will not be stored or shared.</string>
-    <string name="setupwizard_camera_text">### Make some Pictures!  \nYou will be able to make pictures (e.g., of your meals) for your diary. For taking this pictures DieBEATit needs camera permission.</string>
-    <string name="setupwizard_demomode_text">### App Demonstration  \nFor demonstration purposes you can start the app in Demo-Mode. The app will behave identically but will use fake data. We desined the fake data input in a way to demonstrate all functions of the app within a week. We took care that you will not get disturbed at night.  \n\n**Note:** To deactivate the demonstration mode, please reinstall the app to ensure a consistent database.</string>
     <string name="setupwizard_thankyou_text">### Setup completed!  \nAll done! **Please reopen the App after pressing the finish button.**  \n\nWe wish you much fun using our app!</string>
     <string name="setupwizard_paywall_text">### Passphrase!  \nAs the music is not to be distributed beyond our group, hence we must protect access. Please enter the password you got from the team.</string>
 
-    <string name="setupwizard_demomode_warning_text">The Demo Mode already wrote data to the database. To disable Demo Mode please reinstall the app. This ensures database consistency.</string>
-    <string name="setupwizard_demomode_warning_title">Can\'t disable Demo Mode</string>
-
     <string name="setupwizard_error_permission_missing_title">Permission Missing</string>
     <string name="setupwizard_error_permission_missing_text">You have to grand requested permissions to finish the setup.</string>
-    <string name="setupwizard_error_license_missing_title">License agreements not accepted</string>
-    <string name="setupwizard_error_license_missing_text">You have to fill the correct password provided by your trainer.</string>
     <string name="setupwizard_error_paywall_title">Passphrase not confirmed</string>
     <string name="setupwizard_error_paywall_text">You have to read and accept the data contribution agreements</string>
 
     <!-- Misc -->
-    <string name="restart_app">Restarting app</string>
     <string name="app_name">FD Music</string>
 
     <string name="permission">Permission</string>
-    <string name="askforpermission">Ask for permission</string>
-    <string name="activate">Activate</string>
-    <string name="i_understand_and_agree">I understand and agree</string>
-    <string name="previous_button">Prev</string>
-    <string name="next_button">Next</string>
     <string name="finish_button">Finish</string>
     <string name="ok_button">Ok</string>
 
