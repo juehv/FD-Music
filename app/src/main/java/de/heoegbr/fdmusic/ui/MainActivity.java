@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.xw.repo.BubbleSeekBar;
 
 import java.io.InputStreamReader;
 import java.util.List;
@@ -47,11 +48,12 @@ public class MainActivity extends AppCompatActivity {
     private Button pauseButton;
     private ToggleButton loopButton;
     private ToggleButton continueButton;
-    private TextView speedValueText;
-    private TextView leadTimeValueText;
+    //private TextView speedValueText;
+    private TextView speedLabel;
+    private TextView leadTimeValueLabel;
 
-    private SeekBar leadTimeSlider;
-    private SeekBar speedSlider;
+    private BubbleSeekBar speedSlider;
+    private BubbleSeekBar leadTimeSlider;
 
     private float mSpeed = 1.0f;
     private int mLeadTimeInSeconds = 5;
@@ -170,17 +172,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        speedValueText = findViewById(R.id.speedValueText);
-        speedValueText.setOnClickListener(view -> {
-            speedSlider.setProgress(50);
+//        speedValueText = findViewById(R.id.speedValueText);
+//        speedValueText.setOnClickListener(view -> {
+//            speedSlider.setProgress(50);
+//        });
+        speedLabel = findViewById(R.id.speedLabel);
+        speedLabel.setOnClickListener(view -> {
+            speedSlider.setProgress(100);
         });
         speedSlider = findViewById(R.id.speedSlider);
-        speedSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        speedSlider.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                mSpeed = (((float) progress / 250.0f) + 0.8f);
-                speedValueText.setText(String.format("%d %%", Math.round(mSpeed * 100)));
+            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) {
+                mSpeed = ((float) progress / 100.0f); // (((float) progress / 250.0f) + 0.8f);
+                //speedValueText.setText(String.format("%d %%", Math.round(mSpeed * 100)));
 
+            }
+
+            @Override
+            public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
+                Log.i(TAG, "Sending Speed Intent");
                 Intent propIntent = new Intent(getApplicationContext(), SoundService.class);
                 propIntent.setAction(MusicConstants.ACTION.SPEED_CHANGE_ACTION);
                 propIntent.putExtra(MusicConstants.KEY_EXTRA.SPEED, mSpeed);
@@ -193,26 +204,27 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+            public void getProgressOnFinally(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) {
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-        speedSlider.setProgress(Math.round((mSpeed - 0.8f) * 250.0f)); // set restored value
+        speedSlider.setProgress(Math.round(mSpeed * 100.0f)); // set restored value
 
-        leadTimeValueText = findViewById(R.id.leatTimeValueText);
-        leadTimeValueText.setOnClickListener(view -> {
-            leadTimeSlider.setProgress(25);
+        leadTimeValueLabel = findViewById(R.id.leadTimeLabel);
+        leadTimeValueLabel.setOnClickListener(view -> {
+            leadTimeSlider.setProgress(5);
         });
         leadTimeSlider = findViewById(R.id.leadTimeSlider);
-        leadTimeSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                mLeadTimeInSeconds = Math.round(progress / 5);
-                leadTimeValueText.setText(String.format("%d s", mLeadTimeInSeconds));
+        leadTimeSlider.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListener(){
 
+            @Override
+            public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) {
+                mLeadTimeInSeconds = progress; // Math.round(progress / 5);
+                //leadTimeValueText.setText(String.format("%d s", mLeadTimeInSeconds));
+            }
+
+            @Override
+            public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
                 Intent propIntent = new Intent(getApplicationContext(), SoundService.class);
                 propIntent.setAction(MusicConstants.ACTION.LT_CHANGE_ACTION);
                 propIntent.putExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, mLeadTimeInSeconds);
@@ -224,16 +236,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+            public void getProgressOnFinally(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) {
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-        leadTimeSlider.setProgress(Math.round(mLeadTimeInSeconds*5)); // set restored value
+        leadTimeSlider.setProgress(mLeadTimeInSeconds); // set restored value
     }
 
     @Override

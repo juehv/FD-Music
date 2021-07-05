@@ -55,6 +55,9 @@ dependencies {
     // json
     implementation 'com.google.code.gson:gson:2.8.7'
 
+    // seekbar with indicator while sliding
+    implementation 'com.xw.repo:bubbleseekbar:3.20-lite'
+
     // testing
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
