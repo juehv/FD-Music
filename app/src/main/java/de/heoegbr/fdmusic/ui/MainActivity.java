@@ -323,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
                 // TODO: What is MUSIC_OFFSET for?
                 int startTime = MusicConstants.MUSIC_ENTRY_POINTS.get(position).start;
 
-                int leadTime = Math.round(leadTimeSlider.getProgress() / 5) * 1000;
+                int leadTime = mLeadTimeInSeconds * 1000;
                 // The lead time can't be longer than the offset from start.
                 leadTime = Math.min(leadTime, startTime);
 
@@ -334,10 +334,8 @@ public class MainActivity extends AppCompatActivity {
                 timer.scheduleAtFixedRate(new TimerTask() {
                     @Override
                     public void run() {
-                        float speed = (((float) speedSlider.getProgress() / 250.0f) + 0.8f);
-
                         long now = System.currentTimeMillis();
-                        currentTimeInMusic = (int) (currentTimeInMusic + speed * (now - lastTime));
+                        currentTimeInMusic = (int) (currentTimeInMusic + mSpeed * (now - lastTime));
                         lastTime = now;
 
                         // Tell the fragment what time it is and let it update itself.
