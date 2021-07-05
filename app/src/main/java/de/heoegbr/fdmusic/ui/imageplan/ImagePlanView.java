@@ -27,6 +27,7 @@ import java.util.TreeMap;
 
 import de.heoegbr.fdmusic.R;
 import de.heoegbr.fdmusic.data.Image;
+import de.heoegbr.fdmusic.data.MusicConstants;
 
 /**
  * Custom view for rendering images of a formation choreography.
@@ -99,6 +100,8 @@ public class ImagePlanView extends View {
 
         List<ImageAtTime> imageList = gson.fromJson(reader, listType);
         imageList.forEach(i -> images.put(i.time, i.image));
+
+        //MusicConstants.FORMATION_DATA.shapes.forEach(s -> images.put(s.timePoint, s.positions));
     }
 
     public void skipToNextImage() {
@@ -138,8 +141,11 @@ public class ImagePlanView extends View {
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         // Always report that we need as much width as we need height, thus forcing the
-        // view to be square.
-        super.onMeasure(widthMeasureSpec, widthMeasureSpec);
+        // view to be square; always use the smaller of the sides.
+        if (widthMeasureSpec < heightMeasureSpec)
+            super.onMeasure(widthMeasureSpec, widthMeasureSpec);
+        else
+            super.onMeasure(heightMeasureSpec, heightMeasureSpec);
     }
 
     private void drawFloorGrid(Paint paint, Canvas canvas) {
