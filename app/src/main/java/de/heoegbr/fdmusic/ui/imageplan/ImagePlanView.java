@@ -8,29 +8,14 @@ import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
-
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import de.heoegbr.fdmusic.R;
-import de.heoegbr.fdmusic.data.Image;
+import de.heoegbr.fdmusic.data.FormationShape;
 import de.heoegbr.fdmusic.data.MusicConstants;
 
 /**
- * Custom view for rendering images of a formation choreography.
+ * Custom view for rendering shapes of a formation choreography.
  *
  * @author David Schneider
  */
@@ -56,57 +41,19 @@ public class ImagePlanView extends View {
 
     private Integer timeInMusic = null;
 
-    private SortedMap<Integer, Image> images = new TreeMap<>();
-
-
-    class ImageAtTime {
-        public int time;
-        public Image image;
-    }
-
-    class ImageDeserializer implements JsonDeserializer<Image> {
-
-        @Override
-        public Image deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext)
-                throws JsonParseException {
-            if (!jsonElement.isJsonNull()) {
-                Image image = new Image();
-
-                for (Map.Entry<String, JsonElement> entry : jsonElement.getAsJsonObject().entrySet()) {
-                    JsonObject position = entry.getValue().getAsJsonObject();
-                    float width = position.get("width").getAsFloat();
-                    float depth = position.get("depth").getAsFloat();
-
-                    PointF point = new PointF(width, depth);
-
-                    image.positions.put(entry.getKey(), point);
-                }
-
-                return image;
-            }
-            else
-                return null;
-        }
-    }
+    private SortedMap<Integer, FormationShape> shapes = new TreeMap<>();
 
 
     public ImagePlanView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        // Load the images.
-        Reader reader = new InputStreamReader(context.getResources().openRawResource(R.raw.images));
-        Gson gson = new GsonBuilder().registerTypeAdapter(Image.class, new ImageDeserializer()).create();
-        Type listType = new TypeToken<List<ImageAtTime>>() {}.getType();
-
-        List<ImageAtTime> imageList = gson.fromJson(reader, listType);
-        imageList.forEach(i -> images.put(i.time, i.image));
-
-        //MusicConstants.FORMATION_DATA.shapes.forEach(s -> images.put(s.timePoint, s.positions));
+        // Create index of shapes by timestamp.
+        MusicConstants.FORMATION_DATA.shapes.forEach(s -> shapes.put(s.timePoint, s));
     }
 
     public void skipToNextImage() {
         if (timeInMusic != null) {
-            SortedMap<Integer, Image> tailMap = images.tailMap(timeInMusic + 1);
+            SortedMap<Integer, FormationShape> tailMap = shapes.tailMap(timeInMusic + 1);
 
             if (!tailMap.isEmpty())
                 setTimeInMusic(tailMap.firstKey());
@@ -115,7 +62,7 @@ public class ImagePlanView extends View {
 
     public void skipToPreviousImage() {
         if (timeInMusic != null) {
-            SortedMap<Integer, Image> headMap = images.headMap(timeInMusic);
+            SortedMap<Integer, FormationShape> headMap = shapes.headMap(timeInMusic);
 
             if (!headMap.isEmpty())
                 setTimeInMusic(headMap.lastKey());
@@ -201,28 +148,28 @@ public class ImagePlanView extends View {
 
     private void drawPositions(Paint paint, Canvas canvas) {
         int lastImageTime = 0;
-        Image lastImage = null;
+        FormationShape lastImage = null;
 
         int nextImageTime = 0;
-        Image nextImage = null;
+        FormationShape nextImage = null;
 
         // Load the last image that is still before the current time and the first image that is
         // after the current time, and interpolate between the two.
         // Look one millisecond later than the actual time to avoid problems with how headMap()
         // and tailMap() work when we are exactly at the time of the new image.
         if (timeInMusic != null) {
-            SortedMap<Integer, Image> headMap = images.headMap(timeInMusic + 1);
+            SortedMap<Integer, FormationShape> headMap = shapes.headMap(timeInMusic + 1);
 
             if (!headMap.isEmpty()) {
                 lastImageTime = headMap.lastKey();
-                lastImage = images.get(lastImageTime);
+                lastImage = shapes.get(lastImageTime);
             }
 
-            SortedMap<Integer, Image> tailMap = images.tailMap(timeInMusic + 1);
+            SortedMap<Integer, FormationShape> tailMap = shapes.tailMap(timeInMusic + 1);
 
             if (!tailMap.isEmpty()) {
                 nextImageTime = tailMap.firstKey();
-                nextImage = images.get(nextImageTime);
+                nextImage = shapes.get(nextImageTime);
             }
         }
 
