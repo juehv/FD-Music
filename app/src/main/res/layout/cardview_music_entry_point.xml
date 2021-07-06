@@ -5,7 +5,7 @@
     android:padding="5dp">
     <!-- stolen at https://code.tutsplus.com/de/tutorials/getting-started-with-recyclerview-and-cardview-on-android- -cms-23465 :) -->
     <androidx.cardview.widget.CardView
-        android:id="@+id/cv"
+        android:id="@+id/musicEntryPointCardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:foreground="?android:attr/selectableItemBackground"
@@ -14,17 +14,24 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
             >
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/ep_label"
+                android:id="@+id/musicEntryPointLabel"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
-                android:layout_marginEnd="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp"
+                android:text="Title 1"
                 />
+
+            <androidx.appcompat.widget.AppCompatCheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true" />
 
         </RelativeLayout>
     </androidx.cardview.widget.CardView>

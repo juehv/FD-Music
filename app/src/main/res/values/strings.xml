@@ -1,7 +1,7 @@
 <resources>
     <!-- Main Activity" -->
-    <string name="main_speed_label">Speed [%]</string>
-    <string name="main_lead_time_label">Lead Time [s]</string>
+    <string name="main_speed_label">Speed</string>
+    <string name="main_lead_time_label">Lead Time</string>
     <string name="main_stop_button_label">Stop</string>
     <string name="main_not_looping_label">Not Looping</string>
     <string name="main_looping_label">Looping</string>

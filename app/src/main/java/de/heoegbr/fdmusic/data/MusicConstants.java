@@ -18,6 +18,9 @@ public class MusicConstants {
     public static boolean APP_INITIALIZED = false;
     public static float TMP_BACKUP_SPEED = 1.0f;
     public static int TMP_BACKUP_LEAD_TIME = 5;
+    public static boolean TMP_BACKUP_LOOP = false;
+    public static boolean TMP_BACKUP_CONTINUE = false;
+    public static boolean TMP_BACKUP_PASSAGE = false;
 
     public static class ACTION {
         public static final String MAIN_ACTION = "music.action.main";
@@ -27,8 +30,7 @@ public class MusicConstants {
         public static final String STOP_ACTION = "music.action.stop";
         public static final String LT_CHANGE_ACTION = "music.action.leadtime";
         public static final String SPEED_CHANGE_ACTION = "music.action.speed";
-        public static final String LOOP_ACTION = "music.action.loop";
-        public static final String CONTINUE_ACTION = "music.action.continue";
+        public static final String LOOP_CONTINUE_ACTION = "music.action.loopContinue";
     }
 
     public static class STATE_SERVICE {
@@ -44,6 +46,7 @@ public class MusicConstants {
         public static final String CONTINUE = "player.extra.continue";
         public static final String LEAD_TIME = "player.extra.leadtime";
         public static final String SPEED = "player.extra.speed";
+        public static final String PASSAGE = "player.extra.passage";
     }
 
     //FIXME lazy db --> should be loaded from a file or so ...
