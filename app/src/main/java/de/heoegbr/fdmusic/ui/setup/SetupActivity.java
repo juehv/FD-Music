@@ -34,12 +34,14 @@ import de.heoegbr.fdmusic.R;
 import de.heoegbr.fdmusic.data.MusicConstants;
 import de.heoegbr.fdmusic.ui.MainActivity;
 
+/**
+ * Basic Setup Wizard
+ * @author Jens
+ */
 //https://developer.android.com/training/animation/screen-slide
 public class SetupActivity extends FragmentActivity {
     public static final String SETUP_COMPLETE_KEY = "setup_wizard_completed";
-    public static final String SETUP_LICENCE_AGEED_KEY = "eula_agreed";
     public static final String SETUP_PAYWALL_KEY = "paywall";
-    public static final String SETUP_DEMO_MODE_KEY = "demo_mode";
     private static final String TAG = "SETUP_WIZARD";
 
     // TODO move to viewmodel?

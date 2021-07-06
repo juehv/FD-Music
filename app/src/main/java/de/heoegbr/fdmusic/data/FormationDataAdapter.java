@@ -15,6 +15,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Adapter to read meta.json to internal container
+ *
+ * @author Jens
+ */
 public class FormationDataAdapter implements JsonDeserializer<FormationData> {
     private static final String TAG = FormationDataAdapter.class.getName();
 

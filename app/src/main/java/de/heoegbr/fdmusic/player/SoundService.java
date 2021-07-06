@@ -23,6 +23,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import de.heoegbr.fdmusic.R;
+import de.heoegbr.fdmusic.data.LazyDatabase;
 import de.heoegbr.fdmusic.data.MusicConstants;
 import de.heoegbr.fdmusic.ui.MainActivity;
 
@@ -115,7 +116,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         @Override
         public void run() {
             mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(
-                    MusicConstants.MUSIC_ENTRY_POINTS.get(sPlayingPosition).label
+                    LazyDatabase.FORMATION_DATA.entryPoints.get(sPlayingPosition).label
             ));
             mTimerUpdateHandler.postDelayed(this, MusicConstants.DELAY_UPDATE_NOTIFICATION_FOREGROUND_SERVICE);
         }
@@ -184,7 +185,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
                 mContinue = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.CONTINUE, false);
 
                 startForeground(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(
-                        MusicConstants.MUSIC_ENTRY_POINTS.get(sPlayingPosition).label
+                        LazyDatabase.FORMATION_DATA.entryPoints.get(sPlayingPosition).label
                 ));
 
                 destroyPlayer();
@@ -198,7 +199,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
                 liveServiceState.postValue(STATE_SERVICE.PLAY);
 
                 mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(
-                        MusicConstants.MUSIC_ENTRY_POINTS.get(sPlayingPosition).label
+                        LazyDatabase.FORMATION_DATA.entryPoints.get(sPlayingPosition).label
                 ));
 
                 destroyPlayer();
@@ -341,7 +342,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
             e.printStackTrace();
         }
 
-        int from = MusicConstants.MUSIC_ENTRY_POINTS.get(position).start;
+        int from = LazyDatabase.FORMATION_DATA.entryPoints.get(position).start;
 
         synchronized (mLock) {
             try {
@@ -470,7 +471,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         mPlayer.setLooping(mLoop);
 
         int timerWakeDelay = Math.round(
-                (MusicConstants.MUSIC_ENTRY_POINTS.get(sPlayingPosition).stop - mPlayer.getCurrentPosition())
+                (LazyDatabase.FORMATION_DATA.entryPoints.get(sPlayingPosition).stop - mPlayer.getCurrentPosition())
                         / mSpeed);
         if (timerWakeDelay > 0) {
             mStopTimer.cancel();

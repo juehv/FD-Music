@@ -19,6 +19,11 @@ import de.heoegbr.fdmusic.data.FormationDataAdapter;
 import de.heoegbr.fdmusic.data.MusicConstants;
 import de.heoegbr.fdmusic.ui.MainActivity;
 
+/**
+ * Startup Entry point... Just in case we need it at some point
+ *
+ * @author Jens
+ */
 public class FdMusicApp extends Application {
     private static final String TAG = FdMusicApp.class.getName();
 

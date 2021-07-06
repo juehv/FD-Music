@@ -35,11 +35,17 @@ import de.heoegbr.fdmusic.BuildConfig;
 import de.heoegbr.fdmusic.R;
 import de.heoegbr.fdmusic.data.FormationData;
 import de.heoegbr.fdmusic.data.FormationDataAdapter;
+import de.heoegbr.fdmusic.data.LazyDatabase;
 import de.heoegbr.fdmusic.data.MusicConstants;
 import de.heoegbr.fdmusic.data.MusicEntryPoint;
 import de.heoegbr.fdmusic.player.SoundService;
 import de.heoegbr.fdmusic.ui.setup.SetupActivity;
 
+/**
+ * Main Activity of FDMusic
+ *
+ * @author Jens
+ */
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
 
@@ -104,12 +110,12 @@ public class MainActivity extends AppCompatActivity {
      * @param context
      */
     private void initializeApp(Context context) {
-        if (MusicConstants.APP_INITIALIZED) {
+        if (LazyDatabase.APP_INITIALIZED) {
             return;
         }
 
         // Load data (music + meta data)
-        //TODO load from somewhere but not from ressources
+        //TODO load from somewhere but not from resources
         InputStreamReader reader = new InputStreamReader(context.getResources().openRawResource(R.raw.meta));
         Gson gson = new GsonBuilder().registerTypeAdapter(FormationData.class, new FormationDataAdapter()).create();
         FormationData fData = gson.fromJson(reader, new TypeToken<FormationData>() {
@@ -133,14 +139,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // save to (lazy in-memory) database
-        // todo find cleaner solution
-        MusicConstants.MUSIC_ENTRY_POINTS = fData.entryPoints;
-        MusicConstants.FORMATION_DATA = fData;
+        LazyDatabase.FORMATION_DATA = fData;
 
         // initialize static variables
-        sViewAdapter = new MusicViewAdapter(MusicConstants.FORMATION_DATA.entryPoints);
+        sViewAdapter = new MusicViewAdapter(LazyDatabase.FORMATION_DATA.entryPoints);
 
-        MusicConstants.APP_INITIALIZED = true;
+        LazyDatabase.APP_INITIALIZED = true;
     }
 
     /**
@@ -406,7 +410,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            return MusicConstants.MUSIC_ENTRY_POINTS.size();
+            return mMusicMusicEntryPoints.size();
         }
 
         @Override
