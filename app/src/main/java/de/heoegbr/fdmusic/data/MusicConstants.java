@@ -33,13 +33,6 @@ public class MusicConstants {
         public static final String LOOP_CONTINUE_ACTION = "music.action.loopContinue";
     }
 
-    public static class STATE_SERVICE {
-        public static final int PREPARE = 30;
-        public static final int PLAY = 20;
-        public static final int PAUSE = 10;
-        public static final int NOT_INIT = 0;
-    }
-
     public static class KEY_EXTRA {
         public static final String POSITION = "player.extra.position";
         public static final String LOOP = "player.extra.loop";

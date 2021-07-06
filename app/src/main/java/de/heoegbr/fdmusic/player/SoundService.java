@@ -36,12 +36,20 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         MediaPlayer.OnSeekCompleteListener {
     private final static String TAG = SoundService.class.getSimpleName();
 
+    // constants for service state
+    public static final class STATE_SERVICE {
+        public static final int PREPARE = 30;
+        public static final int PLAY = 20;
+        public static final int PAUSE = 10;
+        public static final int NOT_INIT = 0;
+    }
+
     // service state
     public static MutableLiveData<Integer> liveServiceState = new MutableLiveData<>();
     static {
-        liveServiceState.postValue(MusicConstants.STATE_SERVICE.NOT_INIT);
+        liveServiceState.postValue(STATE_SERVICE.NOT_INIT);
     }
-    private static int sServiceState = MusicConstants.STATE_SERVICE.NOT_INIT;
+    private static int sServiceState = STATE_SERVICE.NOT_INIT;
 
     // current track as position in entry point array
     public static MutableLiveData<Integer> livePlayingPosition = new MutableLiveData<>();
@@ -57,9 +65,6 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     }
     private Timer mUpdateMediaPlayerPlayingPositionTimer = new Timer(true);
 
-    // loop current track
-    private boolean mLoop = false;
-
     // playing speed
     public static MutableLiveData<Float> liveSpeed = new MutableLiveData<>();
     static {
@@ -67,13 +72,32 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     }
     private static float mSpeed = 1.0f;
 
+    // loop current track
+    public static MutableLiveData<Boolean> liveLoop = new MutableLiveData<>();
+    static {
+        liveLoop.postValue(false);
+    }
+    private boolean mLoop = false;
+
     // lead time before track reaches entry point in music
+    public static MutableLiveData<Integer> liveLeadTime = new MutableLiveData<>();
+    static {
+        liveLeadTime.postValue(5);
+    }
     private int mLeadTime = 5;
 
     // continue after a "track" is finisehd (next entry point starts)
+    public static MutableLiveData<Boolean> liveContinue = new MutableLiveData<>();
+    static {
+        liveContinue.postValue(false);
+    }
     private boolean mContinue = false;
 
     // indicate if player is in passage mode (playing a series of tracks)
+    public static MutableLiveData<Boolean> livePassage = new MutableLiveData<>();
+    static {
+        livePassage.postValue(false);
+    }
     private boolean mPassage = false;
 
 
@@ -110,7 +134,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         });
         liveSpeed.observe(this, aFloat -> {
             mSpeed = aFloat;
-            if (sServiceState == MusicConstants.STATE_SERVICE.PLAY && mPlayer.isPlaying()){
+            if (sServiceState == STATE_SERVICE.PLAY && mPlayer.isPlaying()){
                 mPlayer.setPlaybackParams(mPlayer.getPlaybackParams().setSpeed(mSpeed));
             }
         });
@@ -126,7 +150,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     public void onCreate() {
         super.onCreate();
         Log.d(SoundService.class.getSimpleName(), "onCreate()");
-        liveServiceState.postValue(MusicConstants.STATE_SERVICE.NOT_INIT);
+        liveServiceState.postValue(STATE_SERVICE.NOT_INIT);
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
     }
 
@@ -143,7 +167,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         String action = intent.getAction();
         // bootstrap player on first play command
         if (action == MusicConstants.ACTION.PLAY_ACTION &&
-                sServiceState == MusicConstants.STATE_SERVICE.NOT_INIT) {
+                sServiceState == STATE_SERVICE.NOT_INIT) {
             action = MusicConstants.ACTION.START_ACTION;
         }
 
@@ -152,7 +176,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         switch (action) {
             case MusicConstants.ACTION.START_ACTION:
                 Log.i(TAG, "Received start Intent ");
-                liveServiceState.postValue(MusicConstants.STATE_SERVICE.PREPARE);
+                liveServiceState.postValue(STATE_SERVICE.PREPARE);
 
                 mSpeed = intent.getFloatExtra(MusicConstants.KEY_EXTRA.SPEED, 1f);
                 mLeadTime = intent.getIntExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, 5);
@@ -171,7 +195,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
 
             case MusicConstants.ACTION.PLAY_ACTION:
                 Log.i(TAG, "Clicked Play");
-                liveServiceState.postValue(MusicConstants.STATE_SERVICE.PLAY);
+                liveServiceState.postValue(STATE_SERVICE.PLAY);
 
                 mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(
                         MusicConstants.MUSIC_ENTRY_POINTS.get(sPlayingPosition).label
@@ -185,9 +209,9 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
 
             case MusicConstants.ACTION.PAUSE_ACTION:
                 Log.i(TAG, "Clicked Pause");
-                if (sServiceState == MusicConstants.STATE_SERVICE.PLAY ||
-                        sServiceState == MusicConstants.STATE_SERVICE.PREPARE) {
-                    liveServiceState.postValue(MusicConstants.STATE_SERVICE.PAUSE);
+                if (sServiceState == STATE_SERVICE.PLAY ||
+                        sServiceState == STATE_SERVICE.PREPARE) {
+                    liveServiceState.postValue(STATE_SERVICE.PAUSE);
 
                     mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE,
                             prepareNotification(""));
@@ -212,7 +236,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
                 Log.i(TAG, "Received speed change intent");
 
                 mSpeed = intent.getFloatExtra(MusicConstants.KEY_EXTRA.SPEED, 1f);
-                if (sServiceState == MusicConstants.STATE_SERVICE.PLAY) {
+                if (sServiceState == STATE_SERVICE.PLAY) {
                     synchronized (mLock) {
                         mPlayer.setPlaybackParams(mPlayer.getPlaybackParams().setSpeed(mSpeed));
                     }
@@ -253,7 +277,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     public void onDestroy() {
         Log.d(TAG, "onDestroy()");
         destroyPlayer();
-        liveServiceState.postValue(MusicConstants.STATE_SERVICE.NOT_INIT);
+        liveServiceState.postValue(STATE_SERVICE.NOT_INIT);
         try {
             mTimerUpdateHandler.removeCallbacksAndMessages(null);
         } catch (Exception e) {
@@ -263,7 +287,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     }
 
     private void destroyPlayer() {
-        liveServiceState.postValue(MusicConstants.STATE_SERVICE.NOT_INIT);
+        liveServiceState.postValue(STATE_SERVICE.NOT_INIT);
         mHandler.postDelayed(mDelayedShutdown, MusicConstants.DELAY_SHUTDOWN_FOREGROUND_SERVICE);
 
         if (mPlayer != null) {
@@ -288,7 +312,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         destroyPlayer();
         mHandler.postDelayed(mDelayedShutdown, MusicConstants.DELAY_SHUTDOWN_FOREGROUND_SERVICE);
         mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification("Error"));
-        liveServiceState.postValue(MusicConstants.STATE_SERVICE.PAUSE);
+        liveServiceState.postValue(STATE_SERVICE.PAUSE);
         return false;
     }
 
@@ -376,19 +400,19 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
 
         switch (sServiceState) {
 
-            case MusicConstants.STATE_SERVICE.PAUSE:
+            case STATE_SERVICE.PAUSE:
                 lRemoteViews.setViewVisibility(R.id.ui_notification_progress_bar, View.INVISIBLE);
                 lRemoteViews.setOnClickPendingIntent(R.id.ui_notification_player_button, lPendingPlayIntent);
                 lRemoteViews.setImageViewResource(R.id.ui_notification_player_button, R.drawable.ic_play_arrow_24);
                 break;
 
-            case MusicConstants.STATE_SERVICE.PLAY:
+            case STATE_SERVICE.PLAY:
                 lRemoteViews.setViewVisibility(R.id.ui_notification_progress_bar, View.INVISIBLE);
                 lRemoteViews.setOnClickPendingIntent(R.id.ui_notification_player_button, lPendingPauseIntent);
                 lRemoteViews.setImageViewResource(R.id.ui_notification_player_button, R.drawable.ic_pause_24);
                 break;
 
-            case MusicConstants.STATE_SERVICE.PREPARE:
+            case STATE_SERVICE.PREPARE:
                 lRemoteViews.setViewVisibility(R.id.ui_notification_progress_bar, View.VISIBLE);
                 lRemoteViews.setOnClickPendingIntent(R.id.ui_notification_player_button, lPendingPauseIntent);
                 lRemoteViews.setImageViewResource(R.id.ui_notification_player_button, R.drawable.ic_pause_24);
@@ -419,7 +443,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     @Override
     public void onPrepared(MediaPlayer mp) {
         Log.d(TAG, "Player onPrepared()");
-        liveServiceState.postValue(MusicConstants.STATE_SERVICE.PLAY);
+        liveServiceState.postValue(STATE_SERVICE.PLAY);
         mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(""));
         try {
             mPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
@@ -433,7 +457,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {
         Log.d(TAG, "Player onSeekComplete()");
-        liveServiceState.postValue(MusicConstants.STATE_SERVICE.PLAY);
+        liveServiceState.postValue(STATE_SERVICE.PLAY);
         mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(""));
         try {
             mPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
@@ -479,7 +503,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         mUpdateMediaPlayerPlayingPositionTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (sServiceState == MusicConstants.STATE_SERVICE.PLAY
+                if (sServiceState == STATE_SERVICE.PLAY
                         && mPlayer.isPlaying()){
                     liveMediaPlayerPlayingPosition.postValue(mPlayer.getCurrentPosition());
                 }

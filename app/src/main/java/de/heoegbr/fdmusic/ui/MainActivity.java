@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -42,33 +43,52 @@ import de.heoegbr.fdmusic.ui.setup.SetupActivity;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
 
-    private RecyclerView titleListRecyclerView;
+    // state constants for multi-button
+    private static final class MULTI_BUTTON_STATE {
+        public static final int CONTINUE = 2;
+        public static final int LOOP = 1;
+        public static final int OFF = 0;
+        public static final int PASSAGE = 3;
+    }
 
-    private static final int MULTI_BUTTON_STATE_OFF = 0;
-    private static final int MULTI_BUTTON_STATE_LOOP = 1;
-    private static final int MULTI_BUTTON_STATE_CONTINUE = 2;
-    private static final int MULTI_BUTTON_STATE_PASSAGE = 3;
+    // constants for pending intent request codes
+    private static final class REQUEST_CODE {
+        public static final int PLAY_REQUEST = 0;
+        public static final int PAUSE_REQUEST = 1;
+    }
 
-    private ImageButton pauseButton;
+    // UI elements
+    private RecyclerView mTitleListRecyclerView;
+    private ImageButton mPlayPauseButton;
     //    private ToggleButton loopButton;
-//    private ToggleButton continueButton;
-    private ImageButton loopContinueButton;
-    private int loopContinueButtonState = MULTI_BUTTON_STATE_OFF;
-    private TextView speedValueText;
-    private TextView speedLabel;
-    private TextView leadTimeValueText;
-    private TextView leadTimeValueLabel;
+    //    private ToggleButton continueButton;
+    private ImageButton mLoopContinueButton;
+    private TextView mSpeedValueText;
+    private TextView mSpeedLabel;
+    private TextView mLeadTimeValueText;
+    private TextView mLeadTimeValueLabel;
 
-    private BubbleSeekBar speedSlider;
-    private BubbleSeekBar leadTimeSlider;
+    private BubbleSeekBar mSpeedSlider;
+    private BubbleSeekBar mLeadTimeSlider;
 
-    private float mSpeed = 1.0f;
-    private int mLeadTimeInSeconds = 5;
-    private boolean mLoop = false;
-    private boolean mContinue = false;
-    private boolean mPassage = false;
+    // GUI element state
+    private static float sSpeed = 1.0f;
+    private static int sLeadTimeInSeconds = 5;
+    private static boolean sLoop = false;
+    private static boolean sContinue = false;
+    private static boolean sPassage = false;
+    private static int sServiceState = SoundService.STATE_SERVICE.NOT_INIT;
+    private static int sLoopContinueButtonState = MULTI_BUTTON_STATE.OFF;
+
+    private static MusicViewAdapter sViewAdapter = null;
 
 
+    /**
+     * Checks for required permissions and if setup wizard was completed
+     *
+     * @param context
+     * @return false if setup wizard should be started again
+     */
     public static boolean isPermissionsGrandedAndSetupWizardCompleted(Context context) {
         boolean permission = context.checkSelfPermission(
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -78,17 +98,24 @@ public class MainActivity extends AppCompatActivity {
         return permission && completed;
     }
 
-    public void initializeApp(Context context) {
+    /**
+     * Initializes static data for app operation.
+     *
+     * @param context
+     */
+    private void initializeApp(Context context) {
         if (MusicConstants.APP_INITIALIZED) {
             return;
         }
 
+        // Load data (music + meta data)
         //TODO load from somewhere but not from ressources
         InputStreamReader reader = new InputStreamReader(context.getResources().openRawResource(R.raw.meta));
         Gson gson = new GsonBuilder().registerTypeAdapter(FormationData.class, new FormationDataAdapter()).create();
         FormationData fData = gson.fromJson(reader, new TypeToken<FormationData>() {
         }.getType());
 
+        // loading successful?
         if (fData == null) {
             // this should not happen ... (at least if data is prepared correctly)
             PreferenceManager.getDefaultSharedPreferences(context).edit()
@@ -105,22 +132,82 @@ public class MainActivity extends AppCompatActivity {
             builder.create().show();
         }
 
+        // save to (lazy in-memory) database
         // todo find cleaner solution
         MusicConstants.MUSIC_ENTRY_POINTS = fData.entryPoints;
         MusicConstants.FORMATION_DATA = fData;
+
+        // initialize static variables
+        sViewAdapter = new MusicViewAdapter(MusicConstants.FORMATION_DATA.entryPoints);
+
         MusicConstants.APP_INITIALIZED = true;
+    }
+
+    /**
+     * attaches observers to state data of player background service
+     */
+    private void initializeDataObservers() {
+        SoundService.liveServiceState.observe(this, serviceState -> {
+            Log.d(TAG, "Update service state.");
+            sServiceState = serviceState;
+            updatePlayPauseButton();
+        });
+        SoundService.liveMediaPlayerPlayingPosition.observe(this, playerPosition -> {
+            Log.d(TAG, "update:" + playerPosition);
+        });
+    }
+
+    // helper function to set icon in play/pause button
+    private void updatePlayPauseButton() {
+        if (sServiceState == SoundService.STATE_SERVICE.PLAY) {
+            mPlayPauseButton.setImageResource(R.drawable.ic_pause_24);
+        } else {
+            mPlayPauseButton.setImageResource(R.drawable.ic_play_arrow_24);
+        }
+    }
+
+    private void updateLoopContinueButton() {
+        switch (sLoopContinueButtonState) {
+            case MULTI_BUTTON_STATE.LOOP:
+                mLoopContinueButton.setImageResource(R.drawable.ic_loop_purple_24);
+                sLoop = true;
+                sContinue = false;
+                sPassage = false;
+                sViewAdapter.setCheckboxVisibility(false);
+                break;
+            case MULTI_BUTTON_STATE.CONTINUE:
+                mLoopContinueButton.setImageResource(R.drawable.ic_arrow_right_purple_24);
+                sLoop = false;
+                sContinue = true;
+                sPassage = false;
+                sViewAdapter.setCheckboxVisibility(false);
+                break;
+            case MULTI_BUTTON_STATE.PASSAGE:
+                mLoopContinueButton.setImageResource(R.drawable.ic_boxes_purple_24);
+                sLoop = false;
+                sContinue = false;
+                sPassage = true;
+                sViewAdapter.setCheckboxVisibility(true);
+                break;
+            case MULTI_BUTTON_STATE.OFF:
+            default:
+                sLoopContinueButtonState = MULTI_BUTTON_STATE.OFF;
+                mLoopContinueButton.setImageResource(R.drawable.ic_loop_24);
+                sLoop = false;
+                sContinue = false;
+                sPassage = false;
+                sViewAdapter.setCheckboxVisibility(false);
+                break;
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
 
-        // backup player configuration
-        MusicConstants.TMP_BACKUP_LEAD_TIME = mLeadTimeInSeconds;
-        MusicConstants.TMP_BACKUP_SPEED = mSpeed;
-        MusicConstants.TMP_BACKUP_LOOP = mLoop ;
-        MusicConstants.TMP_BACKUP_CONTINUE = mContinue ;
-        MusicConstants.TMP_BACKUP_PASSAGE = mPassage;
+        // remove all observers
+        SoundService.liveServiceState.removeObservers(this);
+        SoundService.liveMediaPlayerPlayingPosition.removeObservers(this);
     }
 
     @Override
@@ -132,145 +219,64 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(MainActivity.this, SetupActivity.class));
             return;
         }
+
         initializeApp(getApplicationContext());
 
-        mSpeed = MusicConstants.TMP_BACKUP_SPEED;
-        mLeadTimeInSeconds = MusicConstants.TMP_BACKUP_LEAD_TIME;
-        mLoop =  MusicConstants.TMP_BACKUP_LOOP;
-        mContinue =  MusicConstants.TMP_BACKUP_CONTINUE;
-        mPassage =  MusicConstants.TMP_BACKUP_PASSAGE;
-
+        // start building GUI
         setContentView(R.layout.activity_main);
 
-        titleListRecyclerView = findViewById(R.id.titlesRecyclerView);
+        mTitleListRecyclerView = findViewById(R.id.titlesRecyclerView);
         LinearLayoutManager llm = new LinearLayoutManager(getApplicationContext());
-        titleListRecyclerView.setLayoutManager(llm);
-        MusicViewAdapter mvAdapter = new MusicViewAdapter(MusicConstants.MUSIC_ENTRY_POINTS);
-        titleListRecyclerView.setAdapter(mvAdapter);
+        mTitleListRecyclerView.setLayoutManager(llm);
+        mTitleListRecyclerView.setAdapter(sViewAdapter);
 
-        pauseButton = findViewById(R.id.stopButton);
-        pauseButton.setOnClickListener(v -> {
-            Intent stopIntent = new Intent(v.getContext(), SoundService.class);
-            stopIntent.setAction(MusicConstants.ACTION.PAUSE_ACTION);
-            PendingIntent pendingStopIntent = PendingIntent.getService(v.getContext(), 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            try {
-                pendingStopIntent.send();
-            } catch (PendingIntent.CanceledException e) {
-                e.printStackTrace();
+        mPlayPauseButton = findViewById(R.id.stopButton);
+        mPlayPauseButton.setOnClickListener(v -> {
+            Intent tmpIntent;
+            if (sServiceState == SoundService.STATE_SERVICE.PLAY) {
+                tmpIntent = new Intent(v.getContext(), SoundService.class);
+                tmpIntent.setAction(MusicConstants.ACTION.PAUSE_ACTION);
+                sendPendingIntent(v.getContext(), tmpIntent, REQUEST_CODE.PAUSE_REQUEST);
+            } else {
+                tmpIntent = buildPlayIntent(v.getContext(), -1);
+                sendPendingIntent(v.getContext(), tmpIntent, REQUEST_CODE.PLAY_REQUEST);
             }
         });
+        updatePlayPauseButton();
 
-//        loopButton = findViewById(R.id.loopButton);
-//        loopButton.setOnClickListener(view -> {
-//            Intent propIntent = new Intent(view.getContext(), SoundService.class);
-//            propIntent.setAction(MusicConstants.ACTION.LOOP_ACTION);
-//            propIntent.putExtra(MusicConstants.KEY_EXTRA.LOOP, loopButton.isChecked());
-//            PendingIntent lPendingPropIntent = PendingIntent.getService(getApplicationContext(), 4, propIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-//            try {
-//                lPendingPropIntent.send();
-//            } catch (PendingIntent.CanceledException e) {
-//                Log.e(TAG, e.getMessage());
-//            }
-//        });
-//
-//        continueButton = findViewById(R.id.continueButton);
-//        continueButton.setOnClickListener(view -> {
-//            Intent propIntent = new Intent(view.getContext(), SoundService.class);
-//            propIntent.setAction(MusicConstants.ACTION.CONTINUE_ACTION);
-//            propIntent.putExtra(MusicConstants.KEY_EXTRA.CONTINUE, continueButton.isChecked());
-//            PendingIntent lPendingPropIntent = PendingIntent.getService(getApplicationContext(), 3, propIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-//            try {
-//                lPendingPropIntent.send();
-//            } catch (PendingIntent.CanceledException e) {
-//                Log.e(TAG, e.getMessage());
-//            }
-//        });
-        loopContinueButton = findViewById(R.id.loopContinueButton);
-        loopContinueButton.setOnClickListener(view -> {
-            switch (loopContinueButtonState){
-                case MULTI_BUTTON_STATE_OFF:
-                    loopContinueButtonState = MULTI_BUTTON_STATE_LOOP;
-                    loopContinueButton.setImageResource(R.drawable.ic_loop_purple_24);
-                    mLoop = true;
-                    mContinue = false;
-                    mPassage = false;
-                    break;
-                case MULTI_BUTTON_STATE_LOOP:
-                    loopContinueButtonState = MULTI_BUTTON_STATE_CONTINUE;
-                    loopContinueButton.setImageResource(R.drawable.ic_arrow_right_purple_24);
-                    mLoop = false;
-                    mContinue = true;
-                    mPassage = false;
-                    break;
-                case MULTI_BUTTON_STATE_CONTINUE:
-                    loopContinueButtonState = MULTI_BUTTON_STATE_PASSAGE;
-                    loopContinueButton.setImageResource(R.drawable.ic_boxes_purple_24);
-                    mLoop = false;
-                    mContinue = false;
-                    mPassage = true;
-                    break;
-                case MULTI_BUTTON_STATE_PASSAGE:
-                    loopContinueButtonState = MULTI_BUTTON_STATE_OFF;
-                    loopContinueButton.setImageResource(R.drawable.ic_loop_24);
-                    mLoop = false;
-                    mContinue = false;
-                    mPassage = false;
-                    break;
-                default:
-                    loopContinueButtonState = MULTI_BUTTON_STATE_OFF;
-                    loopContinueButton.setImageResource(R.drawable.ic_loop_24);
-                    mLoop = false;
-                    mContinue = false;
-                    mPassage = false;
-                    break;
-            }
+        mLoopContinueButton = findViewById(R.id.loopContinueButton);
+        mLoopContinueButton.setOnClickListener(view -> {
+            sLoopContinueButtonState++;
+            updateLoopContinueButton();
 
-            Intent playIntent = new Intent(view.getContext(), SoundService.class);
-            playIntent.setAction(MusicConstants.ACTION.LOOP_CONTINUE_ACTION);
-            playIntent.putExtra(MusicConstants.KEY_EXTRA.CONTINUE,
-                    loopContinueButtonState == MULTI_BUTTON_STATE_CONTINUE);
-            playIntent.putExtra(MusicConstants.KEY_EXTRA.LOOP,
-                    loopContinueButtonState == MULTI_BUTTON_STATE_LOOP);
-            playIntent.putExtra(MusicConstants.KEY_EXTRA.PASSAGE,
-                    loopContinueButtonState == MULTI_BUTTON_STATE_PASSAGE);
-            PendingIntent lPendingPlayIntent = PendingIntent.getService(view.getContext(), 0,
-                    playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            try {
-                lPendingPlayIntent.send();
-            } catch (PendingIntent.CanceledException e) {
-                Log.e(TAG, e.getMessage());
-            }
+            SoundService.liveLoop.setValue(sLoop);
+            SoundService.liveContinue.setValue(sContinue);
+            SoundService.livePassage.setValue(sPassage);
         });
+        updateLoopContinueButton(); // restore button state
 
-        speedValueText = findViewById(R.id.speedValueText);
-        speedValueText.setOnClickListener(view -> {
-            speedSlider.setProgress(100);
+        mSpeedValueText = findViewById(R.id.speedValueText);
+        mSpeedValueText.setOnClickListener(view -> {
+            mSpeedSlider.setProgress(100);
+            SoundService.liveSpeed.setValue(1.0f);
         });
-        speedLabel = findViewById(R.id.speedLabel);
-        speedLabel.setOnClickListener(view -> {
-            speedSlider.setProgress(100);
+        mSpeedLabel = findViewById(R.id.speedLabel);
+        mSpeedLabel.setOnClickListener(view -> {
+            mSpeedSlider.setProgress(100);
+            SoundService.liveSpeed.setValue(1.0f);
         });
-        speedSlider = findViewById(R.id.speedSlider);
-        speedSlider.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListener() {
+        mSpeedSlider = findViewById(R.id.speedSlider);
+        mSpeedSlider.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListener() {
             @Override
             public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) {
-                mSpeed = ((float) progress / 100.0f); // (((float) progress / 250.0f) + 0.8f);
-                speedValueText.setText(String.format("%d %%", Math.round(mSpeed * 100)));
-
+                sSpeed = ((float) progress / 100.0f); // (((float) progress / 250.0f) + 0.8f);
+                mSpeedValueText.setText(String.format("%d %%", Math.round(sSpeed * 100)));
             }
 
             @Override
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
                 Log.i(TAG, "Sending Speed Intent");
-                Intent propIntent = new Intent(getApplicationContext(), SoundService.class);
-                propIntent.setAction(MusicConstants.ACTION.SPEED_CHANGE_ACTION);
-                propIntent.putExtra(MusicConstants.KEY_EXTRA.SPEED, mSpeed);
-                PendingIntent lPendingPropIntent = PendingIntent.getService(getApplicationContext(), 2, propIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                try {
-                    lPendingPropIntent.send();
-                } catch (PendingIntent.CanceledException e) {
-                    Log.e(TAG, e.getMessage());
-                }
+                SoundService.liveSpeed.setValue(sSpeed);
             }
 
             @Override
@@ -278,36 +284,30 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        speedSlider.setProgress(Math.round(mSpeed * 100.0f)); // set restored value
+        mSpeedSlider.setProgress(Math.round(sSpeed * 100.0f)); // set restored value
 
-        leadTimeValueText = findViewById(R.id.leatTimeValueText);
-        leadTimeValueText.setOnClickListener(view -> {
-            leadTimeSlider.setProgress(5);
+        mLeadTimeValueText = findViewById(R.id.leatTimeValueText);
+        mLeadTimeValueText.setOnClickListener(view -> {
+            mLeadTimeSlider.setProgress(5);
+            SoundService.liveLeadTime.setValue(5);
         });
-        leadTimeValueLabel = findViewById(R.id.leadTimeLabel);
-        leadTimeValueLabel.setOnClickListener(view -> {
-            leadTimeSlider.setProgress(5);
+        mLeadTimeValueLabel = findViewById(R.id.leadTimeLabel);
+        mLeadTimeValueLabel.setOnClickListener(view -> {
+            mLeadTimeSlider.setProgress(5);
+            SoundService.liveLeadTime.setValue(5);
         });
-        leadTimeSlider = findViewById(R.id.leadTimeSlider);
-        leadTimeSlider.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListener() {
+        mLeadTimeSlider = findViewById(R.id.leadTimeSlider);
+        mLeadTimeSlider.setOnProgressChangedListener(new BubbleSeekBar.OnProgressChangedListener() {
 
             @Override
             public void onProgressChanged(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat, boolean fromUser) {
-                mLeadTimeInSeconds = progress; // Math.round(progress / 5);
-                leadTimeValueText.setText(String.format("%d s", mLeadTimeInSeconds));
+                sLeadTimeInSeconds = progress; // Math.round(progress / 5);
+                mLeadTimeValueText.setText(String.format("%d s", sLeadTimeInSeconds));
             }
 
             @Override
             public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
-                Intent propIntent = new Intent(getApplicationContext(), SoundService.class);
-                propIntent.setAction(MusicConstants.ACTION.LT_CHANGE_ACTION);
-                propIntent.putExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, mLeadTimeInSeconds);
-                PendingIntent lPendingPropIntent = PendingIntent.getService(getApplicationContext(), 1, propIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                try {
-                    lPendingPropIntent.send();
-                } catch (PendingIntent.CanceledException e) {
-                    Log.e(TAG, e.getMessage());
-                }
+                SoundService.liveLeadTime.setValue(sLeadTimeInSeconds);
             }
 
             @Override
@@ -315,19 +315,15 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        leadTimeSlider.setProgress(mLeadTimeInSeconds); // set restored value
+        mLeadTimeSlider.setProgress(sLeadTimeInSeconds); // set restored value
 
-        // syncronize data with background service
-        SoundService.liveServiceState.observe(this, serviceState -> {
-            if (serviceState == MusicConstants.STATE_SERVICE.PLAY){
-                pauseButton.setImageResource(R.drawable.ic_pause_24);
-            } else {
-                pauseButton.setImageResource(R.drawable.ic_play_arrow_24);
-            }
-        });
-        SoundService.liveMediaPlayerPlayingPosition.observe(this,integer -> {
-            Log.d(TAG, "update:"+integer);
-        });
+        // synchronize data with background service
+        initializeDataObservers();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -336,13 +332,41 @@ public class MainActivity extends AppCompatActivity {
         //TODO kill foreground service ? Or is OnDestroy also called while foreground service is running intentionally...
     }
 
+    // helper function to build a play intent with complete configuration set
+    private Intent buildPlayIntent(Context context, int position) {
+        Intent playIntent = new Intent(context, SoundService.class);
+        playIntent.setAction(MusicConstants.ACTION.PLAY_ACTION);
+        playIntent.putExtra(MusicConstants.KEY_EXTRA.POSITION, position);
+        playIntent.putExtra(MusicConstants.KEY_EXTRA.CONTINUE, sLoopContinueButtonState == MULTI_BUTTON_STATE.CONTINUE);
+        playIntent.putExtra(MusicConstants.KEY_EXTRA.LOOP, sLoopContinueButtonState == MULTI_BUTTON_STATE.LOOP);
+        playIntent.putExtra(MusicConstants.KEY_EXTRA.PASSAGE, sLoopContinueButtonState == MULTI_BUTTON_STATE.PASSAGE);
+        playIntent.putExtra(MusicConstants.KEY_EXTRA.SPEED, sSpeed);
+        playIntent.putExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, sLeadTimeInSeconds);
+
+        return playIntent;
+    }
+
+    // helper function to send a pending intent to foreground service
+    private void sendPendingIntent(Context context, Intent intent, int requestCode) {
+        PendingIntent lPendingPlayIntent = PendingIntent.getService(context, requestCode,
+                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        try {
+            lPendingPlayIntent.send();
+        } catch (PendingIntent.CanceledException e) {
+            Log.e(TAG, e.getMessage());
+        }
+    }
+
+    // adapter code for card views in recycler view ...duh!
     public class MusicViewAdapter extends RecyclerView.Adapter<MusicEntryPointViewHolder> {
 
-        List<MusicEntryPoint> musicMusicEntryPoints;
-        HashMap<Integer, MusicEntryPointViewHolder> viewHolders = new HashMap();
+        List<MusicEntryPoint> mMusicMusicEntryPoints;
+        HashMap<Integer, MusicEntryPointViewHolder> mViewHolders = new HashMap();
+        int mCheckedPositionMin = -1;
+        int mCheckedPositionMax = -1;
 
-        MusicViewAdapter(List<MusicEntryPoint> musicMusicEntryPoints) {
-            this.musicMusicEntryPoints = musicMusicEntryPoints;
+        MusicViewAdapter(List<MusicEntryPoint> mMusicMusicEntryPoints) {
+            this.mMusicMusicEntryPoints = mMusicMusicEntryPoints;
         }
 
         @NonNull
@@ -355,33 +379,30 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull MusicEntryPointViewHolder holder, int position) {
-            viewHolders.put(position, holder);
-            holder.label.setText(musicMusicEntryPoints.get(position).label);
+            holder.label.setText(mMusicMusicEntryPoints.get(position).label);
+            holder.position = position;
 
             holder.itemView.setOnClickListener(v -> {
                 // start player
-                Intent playIntent = new Intent(v.getContext(), SoundService.class);
-                playIntent.setAction(MusicConstants.ACTION.PLAY_ACTION);
-                playIntent.putExtra(MusicConstants.KEY_EXTRA.POSITION, position);
-                playIntent.putExtra(MusicConstants.KEY_EXTRA.CONTINUE, loopContinueButtonState == MULTI_BUTTON_STATE_CONTINUE);
-                playIntent.putExtra(MusicConstants.KEY_EXTRA.LOOP, loopContinueButtonState == MULTI_BUTTON_STATE_LOOP);
-                playIntent.putExtra(MusicConstants.KEY_EXTRA.PASSAGE, loopContinueButtonState == MULTI_BUTTON_STATE_PASSAGE);
-                playIntent.putExtra(MusicConstants.KEY_EXTRA.SPEED, mSpeed);
-                playIntent.putExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, mLeadTimeInSeconds);
-                PendingIntent lPendingPlayIntent = PendingIntent.getService(v.getContext(), 0, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                try {
-                    lPendingPlayIntent.send();
-                } catch (PendingIntent.CanceledException e) {
-                    Log.e(TAG, e.getMessage());
-                }
+                Intent playIntent = buildPlayIntent(v.getContext(), position);
+                sendPendingIntent(v.getContext(), playIntent, REQUEST_CODE.PLAY_REQUEST);
 
                 // mark position for user
-                for (Integer key : viewHolders.keySet()){
-                    viewHolders.get(key).resetAppearance();
+                for (Integer key : mViewHolders.keySet()) {
+                    mViewHolders.get(key).resetAppearance();
                 }
                 holder.appearPlaying();
             });
+
+            if (sLoopContinueButtonState == MULTI_BUTTON_STATE.PASSAGE) {
+                holder.checkBox.setVisibility(View.VISIBLE);
+                updateCheckboxState(position);
+            }
+
+            mViewHolders.put(position, holder);
         }
+
+
 
         @Override
         public int getItemCount() {
@@ -392,24 +413,97 @@ public class MainActivity extends AppCompatActivity {
         public void onAttachedToRecyclerView(RecyclerView recyclerView) {
             super.onAttachedToRecyclerView(recyclerView);
         }
+
+        @Override
+        public void onViewAttachedToWindow(@NonNull MusicEntryPointViewHolder holder) {
+            super.onViewAttachedToWindow(holder);
+            updateAllCheckboxStates(); //sets checkbox state after cardview is built
+        }
+
+        void setCheckboxVisibility(boolean visibleBoolean) {
+            int visibility = visibleBoolean ? View.VISIBLE : View.INVISIBLE;
+            for (Integer key : mViewHolders.keySet()) {
+                mViewHolders.get(key).checkBox.setVisibility(visibility);
+            }
+            if (visibleBoolean) {
+                updateAllCheckboxStates();
+            }
+        }
+
+        // helper functions to generate connected passages
+        void updateAllCheckboxStates() {
+            for (Integer key : mViewHolders.keySet()) {
+                updateCheckboxState(key);
+            }
+        }
+
+        void updateCheckboxState(int position){
+            try {
+                if ((position >= mCheckedPositionMin && mCheckedPositionMin > 0)
+                        && (position <= mCheckedPositionMax && mCheckedPositionMax > 0)) {
+                    mViewHolders.get(position).checkBox.setChecked(true);
+                } else {
+                    mViewHolders.get(position).checkBox.setChecked(false);
+                }
+            } catch (NullPointerException ignore){}
+        }
+
+        void setPositionChecked(int position) {
+            if (mCheckedPositionMin < 0
+                    || mCheckedPositionMin > position) {
+                mCheckedPositionMin = position;
+            }
+            if (mCheckedPositionMax < 0
+                    || mCheckedPositionMax < position) {
+                mCheckedPositionMax = position;
+            }
+            updateAllCheckboxStates();
+        }
+
+        void setPositionUnchecked(int position) {
+            if (position == mCheckedPositionMin) {
+                mCheckedPositionMin = -1;
+                mCheckedPositionMax = -1;
+            } else if (position < mCheckedPositionMin) {
+                mCheckedPositionMin = position;
+            } else {
+                mCheckedPositionMax = position - 1;
+            }
+            updateAllCheckboxStates();
+        }
+        // end
     }
 
     public class MusicEntryPointViewHolder extends RecyclerView.ViewHolder {
-        CardView cv;
+        CardView cardView;
         TextView label;
+        CheckBox checkBox;
+        int position;
 
         public MusicEntryPointViewHolder(@NonNull View itemView) {
             super(itemView);
-            cv = itemView.findViewById(R.id.musicEntryPointCardView);
+            cardView = itemView.findViewById(R.id.musicEntryPointCardView);
             label = itemView.findViewById(R.id.musicEntryPointLabel);
+            checkBox = itemView.findViewById(R.id.musicEntryPointCheckBox);
+            checkBox.setOnClickListener(view -> {
+                if (checkBox.isChecked()) {
+                    sViewAdapter.setPositionChecked(position);
+                } else {
+                    sViewAdapter.setPositionUnchecked(position);
+                }
+            });
         }
 
-        public void resetAppearance(){
-            cv.setCardBackgroundColor(getResources().getColor(R.color.light_grey));
+        // resets list appearance to clear playing cards
+        public void resetAppearance() {
+            // TODO fix this (use color from a theme)
+            cardView.setCardBackgroundColor(getResources().getColor(R.color.light_grey));
         }
 
-        public void appearPlaying(){
-            cv.setCardBackgroundColor(getResources().getColor(R.color.teal_700));
+        // marks one card to indicate playing entry
+        public void appearPlaying() {
+            // TODO fix this
+            cardView.setCardBackgroundColor(getResources().getColor(R.color.teal_700));
         }
     }
 }
