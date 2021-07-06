@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -156,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
             sServiceState = serviceState;
             updatePlayPauseButton();
         });
-        SoundService.liveMediaPlayerPlayingPosition.observe(this, playerPosition -> {
+        SoundService.livePlayerPositionInTime.observe(this, playerPosition -> {
             Log.d(TAG, "update:" + playerPosition);
         });
     }
@@ -211,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
 
         // remove all observers
         SoundService.liveServiceState.removeObservers(this);
-        SoundService.liveMediaPlayerPlayingPosition.removeObservers(this);
+        SoundService.livePlayerPositionInTime.removeObservers(this);
     }
 
     @Override
@@ -462,6 +463,7 @@ public class MainActivity extends AppCompatActivity {
                 mCheckedPositionMax = position;
             }
             updateAllCheckboxStates();
+            SoundService.livePassageData.setValue(new Pair<>(mCheckedPositionMin, mCheckedPositionMax));
         }
 
         void setPositionUnchecked(int position) {
@@ -474,6 +476,7 @@ public class MainActivity extends AppCompatActivity {
                 mCheckedPositionMax = position - 1;
             }
             updateAllCheckboxStates();
+            SoundService.livePassageData.setValue(new Pair<>(mCheckedPositionMin, mCheckedPositionMax));
         }
         // end
     }

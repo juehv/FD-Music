@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -47,61 +48,87 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
 
     // service state
     public static MutableLiveData<Integer> liveServiceState = new MutableLiveData<>();
+
     static {
         liveServiceState.postValue(STATE_SERVICE.NOT_INIT);
     }
+
     private static int sServiceState = STATE_SERVICE.NOT_INIT;
 
     // current track as position in entry point array
     public static MutableLiveData<Integer> livePlayingPosition = new MutableLiveData<>();
+
     static {
         livePlayingPosition.postValue(0);
     }
+
     private static int sPlayingPosition = 0;
 
     // playing position of the media player in milliseconds
-    public static MutableLiveData<Integer> liveMediaPlayerPlayingPosition = new MutableLiveData<>();
+    public static MutableLiveData<Integer> livePlayerPositionInTime = new MutableLiveData<>();
+
     static {
-        liveMediaPlayerPlayingPosition.postValue(0);
+        livePlayerPositionInTime.postValue(0);
     }
-    private Timer mUpdateMediaPlayerPlayingPositionTimer = new Timer(true);
+
+    private Timer mUpdatePlayerPositionInTimeTimer = new Timer(true);
 
     // playing speed
     public static MutableLiveData<Float> liveSpeed = new MutableLiveData<>();
+
     static {
         liveSpeed.postValue(1.0f);
     }
-    private static float mSpeed = 1.0f;
+
+    private static float sSpeed = 1.0f;
 
     // loop current track
     public static MutableLiveData<Boolean> liveLoop = new MutableLiveData<>();
+
     static {
         liveLoop.postValue(false);
     }
-    private boolean mLoop = false;
+
+    private static boolean sLoop = false;
 
     // lead time before track reaches entry point in music
     public static MutableLiveData<Integer> liveLeadTime = new MutableLiveData<>();
+
     static {
         liveLeadTime.postValue(5);
     }
-    private int mLeadTime = 5;
+
+    private static int sLeadTime = 5;
 
     // continue after a "track" is finisehd (next entry point starts)
     public static MutableLiveData<Boolean> liveContinue = new MutableLiveData<>();
+
     static {
         liveContinue.postValue(false);
     }
-    private boolean mContinue = false;
+
+    private static boolean sContinue = false;
 
     // indicate if player is in passage mode (playing a series of tracks)
     public static MutableLiveData<Boolean> livePassage = new MutableLiveData<>();
+
     static {
         livePassage.postValue(false);
     }
-    private boolean mPassage = false;
+
+    private static boolean sPassage = false;
+
+    // positions for start and end a passage
+    public static MutableLiveData<Pair<Integer, Integer>> livePassageData = new MutableLiveData<>();
+
+    static {
+        livePassageData.postValue(new Pair<>(-1, -1));
+    }
+
+    private static Pair<Integer, Integer> sPassageData;
 
 
+    //TODO
     private final Object mLock = new Object();
     private final Handler mHandler = new Handler();
     private MediaPlayer mPlayer;
@@ -115,6 +142,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     private Runnable mTimerUpdateRunnable = new Runnable() {
         @Override
         public void run() {
+            //TODO
             mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(
                     LazyDatabase.FORMATION_DATA.entryPoints.get(sPlayingPosition).label
             ));
@@ -123,6 +151,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     };
 
     private Runnable mDelayedShutdown = () -> {
+        //TODO
         destroyPlayer();
         unlockCPU();
         stopForeground(true);
@@ -130,25 +159,47 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     };
 
     public SoundService() {
-        liveServiceState.observe(this,integer -> {
-            sServiceState = integer;
+        //TODO
+        liveServiceState.observe(this, state -> {
+            sServiceState = state;
         });
-        liveSpeed.observe(this, aFloat -> {
-            mSpeed = aFloat;
-            if (sServiceState == STATE_SERVICE.PLAY && mPlayer.isPlaying()){
-                mPlayer.setPlaybackParams(mPlayer.getPlaybackParams().setSpeed(mSpeed));
+        livePlayingPosition.observe(this, postition -> {
+            sPlayingPosition = postition;
+        });
+        liveSpeed.observe(this, speed -> {
+            sSpeed = speed;
+            if (sServiceState == STATE_SERVICE.PLAY && mPlayer.isPlaying()) {
+                mPlayer.setPlaybackParams(mPlayer.getPlaybackParams().setSpeed(sSpeed));
             }
         });
+        liveLoop.observe(this, aBoolean -> {
+            sLoop = aBoolean;
+        });
+        liveLeadTime.observe(this, leadTime -> {
+            sLeadTime = leadTime;
+        });
+        liveContinue.observe(this, continueBool -> {
+            sContinue = continueBool;
+        });
+        livePassage.observe(this, passage -> {
+            sPassage = passage;
+        });
+        livePassageData.observe(this, passageData -> {
+            sPassageData = passageData;
+        });
+
     }
 
     @Override
     public IBinder onBind(Intent arg0) {
+        //TODO
         super.onBind(arg0);
         return null;
     }
 
     @Override
     public void onCreate() {
+        //TODO
         super.onCreate();
         Log.d(SoundService.class.getSimpleName(), "onCreate()");
         liveServiceState.postValue(STATE_SERVICE.NOT_INIT);
@@ -157,6 +208,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
 
     @Override
     public int onStartCommand(final Intent intent, int flags, int startId) {
+        //TODO
         super.onStartCommand(intent, flags, startId);
 
         if (intent == null || intent.getAction() == null) {
@@ -179,17 +231,16 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
                 Log.i(TAG, "Received start Intent ");
                 liveServiceState.postValue(STATE_SERVICE.PREPARE);
 
-                mSpeed = intent.getFloatExtra(MusicConstants.KEY_EXTRA.SPEED, 1f);
-                mLeadTime = intent.getIntExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, 5);
-                mLoop = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.LOOP, false);
-                mContinue = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.CONTINUE, false);
+                sSpeed = intent.getFloatExtra(MusicConstants.KEY_EXTRA.SPEED, 1f);
+                sLeadTime = intent.getIntExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, 5);
+                sLoop = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.LOOP, false);
+                sContinue = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.CONTINUE, false);
 
                 startForeground(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(
                         LazyDatabase.FORMATION_DATA.entryPoints.get(sPlayingPosition).label
                 ));
 
                 destroyPlayer();
-                initPlayer();
 
                 play(sPlayingPosition);
                 break;
@@ -203,7 +254,6 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
                 ));
 
                 destroyPlayer();
-                initPlayer();
 
                 play(sPlayingPosition);
                 break;
@@ -236,17 +286,17 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
             case MusicConstants.ACTION.SPEED_CHANGE_ACTION:
                 Log.i(TAG, "Received speed change intent");
 
-                mSpeed = intent.getFloatExtra(MusicConstants.KEY_EXTRA.SPEED, 1f);
+                sSpeed = intent.getFloatExtra(MusicConstants.KEY_EXTRA.SPEED, 1f);
                 if (sServiceState == STATE_SERVICE.PLAY) {
                     synchronized (mLock) {
-                        mPlayer.setPlaybackParams(mPlayer.getPlaybackParams().setSpeed(mSpeed));
+                        mPlayer.setPlaybackParams(mPlayer.getPlaybackParams().setSpeed(sSpeed));
                     }
                 }
                 break;
 
             case MusicConstants.ACTION.LT_CHANGE_ACTION:
                 Log.i(TAG, "Received lead time change intent");
-                mLeadTime = intent.getIntExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, 5);
+                sLeadTime = intent.getIntExtra(MusicConstants.KEY_EXTRA.LEAD_TIME, 5);
                 break;
 
 //            case MusicConstants.ACTION.LOOP_ACTION:
@@ -261,9 +311,9 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
 
             case MusicConstants.ACTION.LOOP_CONTINUE_ACTION:
                 Log.i(TAG, "Received loop-continue change intent");
-                mContinue = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.CONTINUE, false);
-                mLoop = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.LOOP, false);
-                mPassage = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.PASSAGE, false);
+                sContinue = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.CONTINUE, false);
+                sLoop = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.LOOP, false);
+                sPassage = intent.getBooleanExtra(MusicConstants.KEY_EXTRA.PASSAGE, false);
                 break;
 
             default:
@@ -284,10 +334,12 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // todo kill all timer which are not killed by player
         super.onDestroy();
     }
 
     private void destroyPlayer() {
+        //TODO
         liveServiceState.postValue(STATE_SERVICE.NOT_INIT);
         mHandler.postDelayed(mDelayedShutdown, MusicConstants.DELAY_SHUTDOWN_FOREGROUND_SERVICE);
 
@@ -304,11 +356,14 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         }
         unlockCPU();
 
-        mUpdateMediaPlayerPlayingPositionTimer.cancel();
-        mUpdateMediaPlayerPlayingPositionTimer.purge();
+
+        //TODO kill all timer
+        mUpdatePlayerPositionInTimeTimer.cancel();
+        mUpdatePlayerPositionInTimeTimer.purge();
     }
 
     public boolean onError(MediaPlayer mp, int what, int extra) {
+        //TODO
         Log.d(TAG, "Player onError() what:" + what);
         destroyPlayer();
         mHandler.postDelayed(mDelayedShutdown, MusicConstants.DELAY_SHUTDOWN_FOREGROUND_SERVICE);
@@ -317,25 +372,26 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         return false;
     }
 
+    /**
+     * Initialized the player (loads music file, sets configuration).
+     */
     private void initPlayer() {
         mPlayer = MediaPlayer.create(this, R.raw.title1);
         mPlayer.setOnErrorListener(this);
         mPlayer.setOnPreparedListener(this);
         mPlayer.setOnSeekCompleteListener(this);
-        //mPlayer.setOnBufferingUpdateListener(this);
-        mPlayer.setOnInfoListener(new MediaPlayer.OnInfoListener() {
-            @Override
-            public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                Log.d(TAG, "Player onInfo(), what:" + what + ", extra:" + extra);
-                return false;
-            }
-        });
 
-        liveMediaPlayerPlayingPosition.postValue(0);
         lockCPU();
     }
 
+    /**
+     * Prepares player to play a track.
+     *
+     * @param position in the entry point array to start from.
+     */
     private void play(int position) {
+        liveServiceState.postValue(STATE_SERVICE.PREPARE);
+
         try {
             mHandler.removeCallbacksAndMessages(null);
         } catch (Exception e) {
@@ -349,15 +405,13 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
                 if (mPlayer == null) {
                     initPlayer();
                 }
-//                mPlayer.reset();
-//                mPlayer.setVolume(1.0f, 1.0f);
 //                mPlayer.setDataSource(this, getResources(R.raw.title1).);
 //                mPlayer.prepareAsync();
-                int startPoint = from - (mLeadTime * 1000);
+                //TODO move to on prepared when using files instead of reasources
+                int startPoint = from - (sLeadTime * 1000);
                 startPoint = startPoint < 0 ? 0 : startPoint;
                 mPlayer.seekTo(startPoint);
-                liveMediaPlayerPlayingPosition.postValue(startPoint);
-
+                livePlayerPositionInTime.postValue(startPoint);
 
             } catch (Exception e) {
                 destroyPlayer();
@@ -366,7 +420,14 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         }
     }
 
+    /**
+     * Builds the notification including the player controls for the foreground service.
+     *
+     * @param message current playing track.
+     * @return
+     */
     private Notification prepareNotification(String message) {
+        //TODO
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O &&
                 mNotificationManager.getNotificationChannel(MusicConstants.FOREGROUND_CHANNEL_ID) == null) {
             // The user-visible name of the channel.
@@ -441,22 +502,26 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
 
     }
 
+
+    /**
+     * Is called when player is prepared async.
+     * TODO for later use ...
+     *
+     * @param mediaPlayer
+     */
     @Override
-    public void onPrepared(MediaPlayer mp) {
-        Log.d(TAG, "Player onPrepared()");
-        liveServiceState.postValue(STATE_SERVICE.PLAY);
-        mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(""));
-        try {
-            mPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        //mPlayer.start();
-        mTimerUpdateHandler.postDelayed(mTimerUpdateRunnable, 0);
+    public void onPrepared(MediaPlayer mediaPlayer) {
+
     }
 
+    /**
+     * Is called when player finished seek action. This is the entry point for playing the music.
+     *
+     * @param mediaPlayer
+     */
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {
+        //TODO
         Log.d(TAG, "Player onSeekComplete()");
         liveServiceState.postValue(STATE_SERVICE.PLAY);
         mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(""));
@@ -466,13 +531,12 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
             e.printStackTrace();
         }
         mPlayer.start();
-        mPlayer.setPlaybackParams(mPlayer.getPlaybackParams().setSpeed(mSpeed));
+        mPlayer.setPlaybackParams(mPlayer.getPlaybackParams().setSpeed(sSpeed));
         startFadeIn();
-        mPlayer.setLooping(mLoop);
 
         int timerWakeDelay = Math.round(
                 (LazyDatabase.FORMATION_DATA.entryPoints.get(sPlayingPosition).stop - mPlayer.getCurrentPosition())
-                        / mSpeed);
+                        / sSpeed);
         if (timerWakeDelay > 0) {
             mStopTimer.cancel();
             mStopTimer.purge();
@@ -481,11 +545,18 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
                 @Override
                 public void run() {
                     try {
-                        if (!mContinue) {
-                            if (mLoop) {
+                        if (!sContinue) {
+                            if (sLoop) {
+                                // restart track
                                 startFadeOutAndPlayPosition(sPlayingPosition);
-                            } else
+                            } else if (sPassage) {
+                                //TODO check if position matches and stop or reschedule
+                            } else {
+                                // strop playing
                                 startFadeOutAndPlayPosition(-1);
+                            }
+                        } else {
+                            //TODO reschedule time for next position end, to stop when user disables continue button
                         }
                     } catch (Exception ignored) {
                         Log.w(TAG, "Error while trying to pause player.", ignored);
@@ -498,18 +569,18 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
 
         mTimerUpdateHandler.postDelayed(mTimerUpdateRunnable, 0);
 
-        mUpdateMediaPlayerPlayingPositionTimer.cancel();
-        mUpdateMediaPlayerPlayingPositionTimer.purge();
-        mUpdateMediaPlayerPlayingPositionTimer = new Timer(true);
-        mUpdateMediaPlayerPlayingPositionTimer.schedule(new TimerTask() {
+        mUpdatePlayerPositionInTimeTimer.cancel();
+        mUpdatePlayerPositionInTimeTimer.purge();
+        mUpdatePlayerPositionInTimeTimer = new Timer(true);
+        mUpdatePlayerPositionInTimeTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 if (sServiceState == STATE_SERVICE.PLAY
-                        && mPlayer.isPlaying()){
-                    liveMediaPlayerPlayingPosition.postValue(mPlayer.getCurrentPosition());
+                        && mPlayer.isPlaying()) {
+                    livePlayerPositionInTime.postValue(mPlayer.getCurrentPosition());
                 }
             }
-        }, 100,100);
+        }, 100, 100);
     }
 
     @Override
@@ -539,6 +610,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
     private float volume;
 
     private void startFadeIn() {
+        //TODO
         final int FADE_INTERVAL = 250;
         final int MAX_VOLUME = 1; //The volume will increase from 0 to 1
         int numberOfSteps = FADE_DURATION / FADE_INTERVAL; //Calculate the number of fade steps
@@ -574,6 +646,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
      * @param positionToPlayAfterFadeOut use <0 for no play after fading out
      */
     private void startFadeOutAndPlayPosition(int positionToPlayAfterFadeOut) {
+        //TODO
         final int FADE_INTERVAL = 250;
         final int MAX_VOLUME = 1; //The volume will increase from 0 to 1
         int numberOfSteps = FADE_DURATION / FADE_INTERVAL; //Calculate the number of fade steps
