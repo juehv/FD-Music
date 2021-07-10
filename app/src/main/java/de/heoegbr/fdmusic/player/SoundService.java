@@ -545,6 +545,8 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
                 @Override
                 public void run() {
                     try {
+                        if (mPlayer == null || !mPlayer.isPlaying()) return;
+
                         if (!sContinue) {
                             if (sLoop) {
                                 // restart track
@@ -624,13 +626,21 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
             @Override
             public void run() {
                 try {
-                    volume += deltaVolume;
-                    mPlayer.setVolume(volume, volume);
-                    //Cancel and Purge the Timer if the desired volume has been reached
-                    if (volume >= 1f) {
+                    if (mPlayer == null || !mPlayer.isPlaying()){
                         mFadeTimer.cancel();
                         mFadeTimer.purge();
+                        return;
                     }
+
+                    volume += deltaVolume;
+                    //Cancel and Purge the Timer if the desired volume has been reached
+                    if (volume >= 1f) {
+                        mPlayer.setVolume(1f, 1f);
+                        mFadeTimer.cancel();
+                        mFadeTimer.purge();
+                        return;
+                    }
+                    mPlayer.setVolume(volume, volume);
                 } catch (Exception ignored) {
                     Log.w(this.getClass().getName(), "Mediaplayer issues", ignored);
                 }
@@ -660,6 +670,12 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
             @Override
             public void run() {
                 try {
+                    if (mPlayer == null || !mPlayer.isPlaying()){
+                        mFadeTimer.cancel();
+                        mFadeTimer.purge();
+                        return;
+                    }
+
                     volume -= deltaVolume;
                     //Cancel and Purge the Timer if the desired volume has been reached
                     if (volume <= 0f) {

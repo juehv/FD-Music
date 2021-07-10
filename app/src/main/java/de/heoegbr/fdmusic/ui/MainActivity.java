@@ -321,14 +321,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         mLeadTimeSlider.setProgress(sLeadTimeInSeconds); // set restored value
-
-        // synchronize data with background service
-        initializeDataObservers();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
+        // synchronize data with background service
+        initializeDataObservers();
     }
 
     @Override
@@ -399,7 +399,8 @@ public class MainActivity extends AppCompatActivity {
                 holder.appearPlaying();
             });
 
-            if (sLoopContinueButtonState == MULTI_BUTTON_STATE.PASSAGE) {
+            if (sLoopContinueButtonState == MULTI_BUTTON_STATE.PASSAGE &&
+                position > 1) {
                 holder.checkBox.setVisibility(View.VISIBLE);
                 updateCheckboxState(position);
             }
@@ -428,6 +429,7 @@ public class MainActivity extends AppCompatActivity {
         void setCheckboxVisibility(boolean visibleBoolean) {
             int visibility = visibleBoolean ? View.VISIBLE : View.INVISIBLE;
             for (Integer key : mViewHolders.keySet()) {
+                if (key < 2) continue;
                 mViewHolders.get(key).checkBox.setVisibility(visibility);
             }
             if (visibleBoolean) {
