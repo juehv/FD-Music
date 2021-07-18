@@ -5,13 +5,17 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -130,6 +134,12 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         initializeApp(getApplicationContext());
+
+        int orientation = getRequestedOrientation();
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            //Remove notification bar
+            this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
 
         mSpeed = MusicConstants.TMP_BACKUP_SPEED;
         mLeadTimeInSeconds = MusicConstants.TMP_BACKUP_LEAD_TIME;
@@ -255,6 +265,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         leadTimeSlider.setProgress(mLeadTimeInSeconds); // set restored value
+
+        // fix moving bubble on rotate?
+        speedSlider.correctOffsetWhenContainerOnScrolling();
     }
 
     @Override
