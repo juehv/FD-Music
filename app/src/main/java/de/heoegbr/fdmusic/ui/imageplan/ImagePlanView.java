@@ -12,6 +12,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import de.heoegbr.fdmusic.data.FormationShape;
+import de.heoegbr.fdmusic.data.LazyDatabase;
 import de.heoegbr.fdmusic.data.MusicConstants;
 
 /**
@@ -48,7 +49,7 @@ public class ImagePlanView extends View {
         super(context, attrs);
 
         // Create index of shapes by timestamp.
-        MusicConstants.FORMATION_DATA.shapes.forEach(s -> shapes.put(s.timePoint, s));
+        LazyDatabase.FORMATION_DATA.shapes.forEach(s -> shapes.put(s.timePoint, s));
     }
 
     public void skipToNextShape() {

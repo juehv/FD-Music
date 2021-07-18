@@ -21,6 +21,11 @@ import de.heoegbr.fdmusic.R;
 import de.heoegbr.fdmusic.data.MusicConstants;
 import io.noties.markwon.Markwon;
 
+/**
+ * Universal SetupWizard Page
+ *
+ * @author  Jens
+ */
 public class SetupWelcomeFragment extends Fragment {
     private TextView textView;
     private Switch aggreeSwitch;
