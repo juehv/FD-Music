@@ -51,7 +51,7 @@ public class ImagePlanView extends View {
         MusicConstants.FORMATION_DATA.shapes.forEach(s -> shapes.put(s.timePoint, s));
     }
 
-    public void skipToNextImage() {
+    public void skipToNextShape() {
         if (timeInMusic != null) {
             SortedMap<Integer, FormationShape> tailMap = shapes.tailMap(timeInMusic + 1);
 
@@ -60,7 +60,7 @@ public class ImagePlanView extends View {
         }
     }
 
-    public void skipToPreviousImage() {
+    public void skipToPreviousShape() {
         if (timeInMusic != null) {
             SortedMap<Integer, FormationShape> headMap = shapes.headMap(timeInMusic);
 
@@ -147,42 +147,42 @@ public class ImagePlanView extends View {
     }
 
     private void drawPositions(Paint paint, Canvas canvas) {
-        int lastImageTime = 0;
-        FormationShape lastImage = null;
+        int previousShapeTime = 0;
+        FormationShape previousShape = null;
 
-        int nextImageTime = 0;
-        FormationShape nextImage = null;
+        int nextShapeTime = 0;
+        FormationShape nextShape = null;
 
-        // Load the last image that is still before the current time and the first image that is
+        // Load the last shape that is still before the current time and the first shape that is
         // after the current time, and interpolate between the two.
         // Look one millisecond later than the actual time to avoid problems with how headMap()
-        // and tailMap() work when we are exactly at the time of the new image.
+        // and tailMap() work when we are exactly at the time of the new shape.
         if (timeInMusic != null) {
             SortedMap<Integer, FormationShape> headMap = shapes.headMap(timeInMusic + 1);
 
             if (!headMap.isEmpty()) {
-                lastImageTime = headMap.lastKey();
-                lastImage = shapes.get(lastImageTime);
+                previousShapeTime = headMap.lastKey();
+                previousShape = shapes.get(previousShapeTime);
             }
 
             SortedMap<Integer, FormationShape> tailMap = shapes.tailMap(timeInMusic + 1);
 
             if (!tailMap.isEmpty()) {
-                nextImageTime = tailMap.firstKey();
-                nextImage = shapes.get(nextImageTime);
+                nextShapeTime = tailMap.firstKey();
+                nextShape = shapes.get(nextShapeTime);
             }
         }
 
-        if (lastImage == null || nextImage == null)
+        if (previousShape == null || nextShape == null)
             return;
 
-        // Determine where we are at, on a 0-to-1 scale, between images.
-        float ratio = (timeInMusic - lastImageTime) / (float) (nextImageTime - lastImageTime);
+        // Determine where we are at, on a 0-to-1 scale, between shapes.
+        float ratio = (timeInMusic - previousShapeTime) / (float) (nextShapeTime - previousShapeTime);
 
-        for (String position : lastImage.positions.keySet()) {
+        for (String position : previousShape.positions.keySet()) {
             // Interpolate between the last and next position.
-            PointF lastPosition = lastImage.positions.get(position);
-            PointF nextPosition = nextImage.positions.get(position);
+            PointF lastPosition = previousShape.positions.get(position);
+            PointF nextPosition = getNextPosition(nextShape, position);
 
             float x = lastPosition.x * (1.0f - ratio) + nextPosition.x * ratio;
             float y = lastPosition.y * (1.0f - ratio) + nextPosition.y * ratio;
@@ -191,6 +191,40 @@ public class ImagePlanView extends View {
             drawPath(ratio, x, y, nextPosition.x, nextPosition.y, paint, canvas);
             drawPosition(position, x, y, paint, canvas);
         }
+    }
+
+    private PointF getNextPosition(FormationShape nextShape, String position) {
+        PointF nextPosition = nextShape.positions.get(position);
+
+        if (nextPosition != null)
+            return nextPosition;
+
+        // If the pair is merging from this shape to the next, then find the position of the
+        // merged pair to interpolate to.
+        if (isSeparatedPair(position)) {
+            nextPosition = nextShape.positions.get(position.substring(0, 1));
+
+            if (nextPosition != null)
+                return nextPosition;
+
+            nextPosition = nextShape.positions.get(position.substring(1));
+
+            if (nextPosition != null)
+                return nextPosition;
+        }
+
+        // If the pair is separating from this shape to the next, then find the position of one of
+        // the dancers to interpolate to.
+        nextPosition = nextShape.positions.get("_" + position);
+
+        if (nextPosition != null)
+            return nextPosition;
+
+        throw new RuntimeException(String.format("Next position for %s not found!", position));
+    }
+
+    private static boolean isSeparatedPair(String position) {
+        return position.length() > 1;
     }
     
     private void drawPath(float ratio, float curDepth, float curWidth, float nextDepth, float nextWidth, Paint paint, Canvas canvas) {

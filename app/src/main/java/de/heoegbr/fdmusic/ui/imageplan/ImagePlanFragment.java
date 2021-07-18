@@ -1,8 +1,6 @@
 package de.heoegbr.fdmusic.ui.imageplan;
 
 import android.app.Fragment;
-import android.app.PendingIntent;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,11 +8,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import de.heoegbr.fdmusic.R;
-import de.heoegbr.fdmusic.data.MusicConstants;
-import de.heoegbr.fdmusic.player.SoundService;
 
 /**
  *
@@ -38,12 +33,12 @@ public class ImagePlanFragment extends Fragment {
 
         previousButton = view.findViewById(R.id.previousImageButton);
         previousButton.setOnClickListener(v -> {
-            imagePlanView.skipToPreviousImage();
+            imagePlanView.skipToPreviousShape();
         });
 
         nextButton = view.findViewById(R.id.nextImageButton);
         nextButton.setOnClickListener(v -> {
-            imagePlanView.skipToNextImage();
+            imagePlanView.skipToNextShape();
         });
 
         return view;
