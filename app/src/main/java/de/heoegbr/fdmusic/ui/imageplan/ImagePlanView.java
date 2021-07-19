@@ -8,6 +8,9 @@ import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -183,22 +186,27 @@ public class ImagePlanView extends View {
         for (String position : previousShape.positions.keySet()) {
             // Interpolate between the last and next position.
             PointF lastPosition = previousShape.positions.get(position);
-            PointF nextPosition = getNextPosition(nextShape, position);
+            Map<String, PointF> nextPositions2 = getNextPositions(nextShape, position);
 
-            float x = lastPosition.x * (1.0f - ratio) + nextPosition.x * ratio;
-            float y = lastPosition.y * (1.0f - ratio) + nextPosition.y * ratio;
+            for (Map.Entry<String, PointF> entry : nextPositions2.entrySet()) {
+                position = entry.getKey();
+                PointF nextPosition = entry.getValue();
 
-            // Draw paths from the current position to the next position.
-            drawPath(ratio, x, y, nextPosition.x, nextPosition.y, paint, canvas);
-            drawPosition(position, x, y, paint, canvas);
+                float x = lastPosition.x * (1.0f - ratio) + nextPosition.x * ratio;
+                float y = lastPosition.y * (1.0f - ratio) + nextPosition.y * ratio;
+
+                // Draw paths from the current position to the next position.
+                drawPath(ratio, x, y, nextPosition.x, nextPosition.y, paint, canvas);
+                drawPosition(position, x, y, paint, canvas);
+            }
         }
     }
 
-    private PointF getNextPosition(FormationShape nextShape, String position) {
+    private Map<String, PointF> getNextPositions(FormationShape nextShape, String position) {
         PointF nextPosition = nextShape.positions.get(position);
 
         if (nextPosition != null)
-            return nextPosition;
+            return Collections.singletonMap(position, nextPosition);
 
         // If the pair is merging from this shape to the next, then find the position of the
         // merged pair to interpolate to.
@@ -206,22 +214,20 @@ public class ImagePlanView extends View {
             nextPosition = nextShape.positions.get(position.substring(0, 1));
 
             if (nextPosition != null)
-                return nextPosition;
+                return Collections.singletonMap(position, nextPosition);
 
             nextPosition = nextShape.positions.get(position.substring(1));
 
             if (nextPosition != null)
-                return nextPosition;
+                return Collections.singletonMap(position, nextPosition);
         }
 
-        // If the pair is separating from this shape to the next, then find the position of one of
-        // the dancers to interpolate to.
-        nextPosition = nextShape.positions.get("_" + position);
-
-        if (nextPosition != null)
-            return nextPosition;
-
-        throw new RuntimeException(String.format("Next position for %s not found!", position));
+        // If the pair is separating from this shape to the next, then find the positions of
+        // both dancers to interpolate to.
+        Map<String, PointF> nextPositions = new HashMap<>();
+        nextPositions.put("_" + position, nextShape.positions.get("_" + position));
+        nextPositions.put(position + "_", nextShape.positions.get(position + "_"));
+        return nextPositions;
     }
 
     private static boolean isSeparatedPair(String position) {
