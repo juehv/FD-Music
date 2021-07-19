@@ -227,6 +227,23 @@ public class ImagePlanView extends View {
     private static boolean isSeparatedPair(String position) {
         return position.length() > 1;
     }
+
+    private static boolean isLeader(String position) {
+        return isSeparatedPair(position) && position.endsWith("_");
+    }
+
+    private static boolean isFollower(String position) {
+        return isSeparatedPair(position) && position.startsWith("_");
+    }
+
+    private static String getPositionNameToDraw(String position) {
+        if (isLeader(position))
+            return position.substring(0, 1);
+        else if (isFollower(position))
+            return position.substring(1);
+        else
+            return position;
+    }
     
     private void drawPath(float ratio, float curDepth, float curWidth, float nextDepth, float nextWidth, Paint paint, Canvas canvas) {
         paint.setStrokeWidth(5.0f);
@@ -240,17 +257,24 @@ public class ImagePlanView extends View {
                 paint);
     }
 
-    private void drawPosition(String positionName, float depth, float width, Paint paint, Canvas canvas) {
+    private void drawPosition(String position, float depth, float width, Paint paint, Canvas canvas) {
         float x = convertDepthMetersToPixels(depth);
         float y = convertWidthMetersToPixels(width);
 
-        paint.setColor(Color.BLUE);
+        if (isLeader(position))
+            paint.setColor(Color.BLUE);
+        else if (isFollower(position))
+            paint.setColor(Color.RED);
+        else
+            paint.setColor(Color.BLUE);
+
         paint.setAntiAlias(true);
         canvas.drawCircle(x, y, POSITION_SIZE, paint);
 
         paint.setColor(Color.WHITE);
         paint.setTextSize(POSITION_SIZE * 1.5f);
-        canvas.drawText(positionName, x - (POSITION_SIZE / 2.0f), y + (POSITION_SIZE / 2.0f), paint);
+
+        canvas.drawText(getPositionNameToDraw(position), x - (POSITION_SIZE / 2.0f), y + (POSITION_SIZE / 2.0f), paint);
     }
 
     private float convertDepthMetersToPixels(float depth) {
