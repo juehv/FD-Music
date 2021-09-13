@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
     private static boolean sPassage = false;
     private static int sServiceState = SoundService.STATE_SERVICE.NOT_INIT;
     private static int sLoopContinueButtonState = MULTI_BUTTON_STATE.OFF;
+    private static int sStartPositionPassage = 0;
 
     private static MusicViewAdapter sViewAdapter = null;
 
@@ -243,7 +244,12 @@ public class MainActivity extends AppCompatActivity {
                 tmpIntent.setAction(MusicConstants.ACTION.PAUSE_ACTION);
                 sendPendingIntent(v.getContext(), tmpIntent, REQUEST_CODE.PAUSE_REQUEST);
             } else {
-                tmpIntent = buildPlayIntent(v.getContext(), -1);
+                if (sPassage){
+
+                    tmpIntent = buildPlayIntent(v.getContext(), sStartPositionPassage);
+                } else {
+                    tmpIntent = buildPlayIntent(v.getContext(), -1);
+                }
                 sendPendingIntent(v.getContext(), tmpIntent, REQUEST_CODE.PLAY_REQUEST);
             }
         });
@@ -456,7 +462,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         void setPositionChecked(int position) {
-            if (mCheckedPositionMin < 0
+            if (mCheckedPositionMin < 2 // quick fix, 1.&2. entry are all and gong --> not in passage
                     || mCheckedPositionMin > position) {
                 mCheckedPositionMin = position;
             }
@@ -465,6 +471,7 @@ public class MainActivity extends AppCompatActivity {
                 mCheckedPositionMax = position;
             }
             updateAllCheckboxStates();
+            sStartPositionPassage = mCheckedPositionMin;
             SoundService.livePassageData.setValue(new Pair<>(mCheckedPositionMin, mCheckedPositionMax));
         }
 
@@ -472,7 +479,9 @@ public class MainActivity extends AppCompatActivity {
             if (position == mCheckedPositionMin) {
                 mCheckedPositionMin = -1;
                 mCheckedPositionMax = -1;
+                mCheckedPositionMin = 0;
             } else if (position < mCheckedPositionMin) {
+                mCheckedPositionMin = position;
                 mCheckedPositionMin = position;
             } else {
                 mCheckedPositionMax = position - 1;
