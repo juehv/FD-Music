@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.IBinder;
@@ -528,6 +529,10 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
      */
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {
+        AudioManager mngr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mngr.setBluetoothScoOn(false);
+        mngr.setMode(AudioManager.MODE_NORMAL);
+
         //TODO
         Log.d(TAG, "Player onSeekComplete()");
         liveServiceState.postValue(STATE_SERVICE.PLAY);
