@@ -625,7 +625,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
                     Log.w(TAG, "Error while trying to pause player.", ignored);
                 }
             }
-        }, 100, 100);
+        }, 100, 50);
     }
 
     @Override

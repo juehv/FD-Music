@@ -40,6 +40,8 @@ import de.heoegbr.fdmusic.data.LazyDatabase;
 import de.heoegbr.fdmusic.data.MusicConstants;
 import de.heoegbr.fdmusic.data.MusicEntryPoint;
 import de.heoegbr.fdmusic.player.SoundService;
+import de.heoegbr.fdmusic.ui.imageplan.ImagePlanFragment;
+import de.heoegbr.fdmusic.ui.imageplan.ImagePlanView;
 import de.heoegbr.fdmusic.ui.setup.SetupActivity;
 
 /**
@@ -77,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
 
     private BubbleSeekBar mSpeedSlider;
     private BubbleSeekBar mLeadTimeSlider;
+
+    private ImagePlanView mImagePlan;
 
     // GUI element state
     private static float sSpeed = 1.0f;
@@ -160,6 +164,9 @@ public class MainActivity extends AppCompatActivity {
         });
         SoundService.livePlayerPositionInTime.observe(this, playerPosition -> {
             Log.d(TAG, "update:" + playerPosition);
+
+            if (mImagePlan != null)
+            mImagePlan.setTimeInMusic(playerPosition);
         });
     }
 
@@ -327,6 +334,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         mLeadTimeSlider.setProgress(sLeadTimeInSeconds); // set restored value
+
+        mImagePlan = (ImagePlanView) findViewById(R.id.imagePlanView);
+        if (mImagePlan != null)
+        mImagePlan.setTimeInMusic(0);
     }
 
     @Override

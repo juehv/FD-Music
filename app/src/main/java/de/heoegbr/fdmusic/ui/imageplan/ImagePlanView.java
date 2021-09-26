@@ -74,7 +74,9 @@ public class ImagePlanView extends View {
     }
 
     public void setTimeInMusic(int timeInMusic) {
-        this.timeInMusic = timeInMusic;
+        this.timeInMusic = timeInMusic - MusicConstants.MUSIC_OFFSET;
+        if (this.timeInMusic < 0)
+            this.timeInMusic = 0;
 
         invalidate();
     }
@@ -250,7 +252,7 @@ public class ImagePlanView extends View {
         else
             return position;
     }
-    
+
     private void drawPath(float ratio, float curDepth, float curWidth, float nextDepth, float nextWidth, Paint paint, Canvas canvas) {
         paint.setStrokeWidth(5.0f);
         paint.setColor(Color.BLUE);

@@ -25,7 +25,7 @@
         app:layout_constraintBottom_toTopOf="@+id/speedLayout"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/imagePlanFragment"/>
+        app:layout_constraintStart_toEndOf="@id/imagePlanView"/>
 
 
     <View
@@ -34,7 +34,7 @@
         android:background="@android:color/darker_gray"
         app:layout_constraintBottom_toTopOf="@id/speedLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/imagePlanFragment"/>
+        app:layout_constraintStart_toEndOf="@id/imagePlanView"/>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/speedLayout"
@@ -46,7 +46,7 @@
         android:paddingTop="10dp"
         app:layout_constraintBottom_toTopOf="@id/leedTimeLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/imagePlanFragment">
+        app:layout_constraintStart_toEndOf="@id/imagePlanView">
 
 
         <TextView
@@ -130,7 +130,7 @@
         android:paddingTop="10dp"
         app:layout_constraintBottom_toTopOf="@id/controlsLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/imagePlanFragment">
+        app:layout_constraintStart_toEndOf="@id/imagePlanView">
 
 
         <TextView
@@ -201,7 +201,7 @@
         android:paddingBottom="15dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/imagePlanFragment">
+        app:layout_constraintStart_toEndOf="@id/imagePlanView">
 
         <ImageButton
             android:id="@+id/stopButton"
@@ -247,9 +247,8 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <fragment
-        android:name="de.heoegbr.fdmusic.ui.imageplan.ImagePlanFragment"
-        android:id="@+id/imagePlanFragment"
+    <de.heoegbr.fdmusic.ui.imageplan.ImagePlanView
+        android:id="@+id/imagePlanView"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:orientation="horizontal"
