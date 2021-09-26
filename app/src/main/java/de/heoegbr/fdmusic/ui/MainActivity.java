@@ -410,10 +410,11 @@ public class MainActivity extends AppCompatActivity {
                 sendPendingIntent(v.getContext(), playIntent, REQUEST_CODE.PLAY_REQUEST);
 
                 // mark position for user
-                for (Integer key : mViewHolders.keySet()) {
-                    mViewHolders.get(key).resetAppearance();
-                }
-                holder.appearPlaying();
+                // fixme does not work properly
+//                for (Integer key : mViewHolders.keySet()) {
+//                    mViewHolders.get(key).resetAppearance();
+//                }
+//                holder.appearPlaying();
             });
 
             if (sLoopContinueButtonState == MULTI_BUTTON_STATE.PASSAGE &&
