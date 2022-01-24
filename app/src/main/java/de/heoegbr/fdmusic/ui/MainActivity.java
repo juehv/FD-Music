@@ -451,7 +451,13 @@ public class MainActivity extends AppCompatActivity {
                 mViewHolders.get(key).checkBox.setVisibility(visibility);
             }
             if (visibleBoolean) {
+                // make state visible
                 updateAllCheckboxStates();
+            } else {
+                //clear state
+                mCheckedPositionMin = -1;
+                mCheckedPositionMax = -1;
+                SoundService.livePassageData.setValue(new Pair<>(mCheckedPositionMin, mCheckedPositionMax));
             }
         }
 

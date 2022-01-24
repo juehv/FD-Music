@@ -146,10 +146,12 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         @Override
         public void run() {
             //TODO
-            mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(
-                    LazyDatabase.FORMATION_DATA.entryPoints.get(sPlayingPosition).label
-            ));
-            mTimerUpdateHandler.postDelayed(this, MusicConstants.DELAY_UPDATE_NOTIFICATION_FOREGROUND_SERVICE);
+            if (sPlayingPosition > -1) {
+                mNotificationManager.notify(MusicConstants.NOTIFICATION_ID_FOREGROUND_SERVICE, prepareNotification(
+                        LazyDatabase.FORMATION_DATA.entryPoints.get(sPlayingPosition).label
+                ));
+                mTimerUpdateHandler.postDelayed(this, MusicConstants.DELAY_UPDATE_NOTIFICATION_FOREGROUND_SERVICE);
+            }
         }
     };
 
@@ -612,6 +614,7 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
                                 return;
                             } else {
                                 // end of passage reached
+                                sPlayingPosition = sPassageData.first;
                                 startFadeOutAndPlayPosition(-1);
                             }
                         } else {
