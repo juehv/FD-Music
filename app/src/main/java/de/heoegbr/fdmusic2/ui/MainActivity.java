@@ -1,4 +1,4 @@
-package de.heoegbr.fdmusic.ui;
+package de.heoegbr.fdmusic2.ui;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -32,17 +32,16 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 
-import de.heoegbr.fdmusic.BuildConfig;
-import de.heoegbr.fdmusic.R;
-import de.heoegbr.fdmusic.data.FormationData;
-import de.heoegbr.fdmusic.data.FormationDataAdapter;
-import de.heoegbr.fdmusic.data.LazyDatabase;
-import de.heoegbr.fdmusic.data.MusicConstants;
-import de.heoegbr.fdmusic.data.MusicEntryPoint;
-import de.heoegbr.fdmusic.player.SoundService;
-import de.heoegbr.fdmusic.ui.imageplan.ImagePlanFragment;
-import de.heoegbr.fdmusic.ui.imageplan.ImagePlanView;
-import de.heoegbr.fdmusic.ui.setup.SetupActivity;
+import de.heoegbr.fdmusic2.BuildConfig;
+import de.heoegbr.fdmusic2.R;
+import de.heoegbr.fdmusic2.data.FormationData;
+import de.heoegbr.fdmusic2.data.FormationDataAdapter;
+import de.heoegbr.fdmusic2.data.LazyDatabase;
+import de.heoegbr.fdmusic2.data.MusicConstants;
+import de.heoegbr.fdmusic2.data.MusicEntryPoint;
+import de.heoegbr.fdmusic2.player.SoundService;
+import de.heoegbr.fdmusic2.ui.imageplan.ImagePlanView;
+import de.heoegbr.fdmusic2.ui.setup.SetupActivity;
 
 /**
  * Main Activity of FDMusic
@@ -371,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
     // helper function to send a pending intent to foreground service
     private void sendPendingIntent(Context context, Intent intent, int requestCode) {
         PendingIntent lPendingPlayIntent = PendingIntent.getService(context, requestCode,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                intent,  PendingIntent.FLAG_IMMUTABLE);
         try {
             lPendingPlayIntent.send();
         } catch (PendingIntent.CanceledException e) {
@@ -402,7 +401,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull MusicEntryPointViewHolder holder, int position) {
             holder.label.setText(mMusicMusicEntryPoints.get(position).label);
-            holder.position = position;
+            holder.position = holder.getAdapterPosition();
 
             holder.itemView.setOnClickListener(v -> {
                 // start player

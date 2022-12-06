@@ -1,7 +1,4 @@
-package de.heoegbr.fdmusic.data;
-
-import java.util.ArrayList;
-import java.util.List;
+package de.heoegbr.fdmusic2.data;
 
 /**
  * Constants for managing sound sound service (and more).

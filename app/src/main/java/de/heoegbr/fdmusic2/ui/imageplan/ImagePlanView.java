@@ -1,4 +1,4 @@
-package de.heoegbr.fdmusic.ui.imageplan;
+package de.heoegbr.fdmusic2.ui.imageplan;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import de.heoegbr.fdmusic.data.FormationShape;
-import de.heoegbr.fdmusic.data.LazyDatabase;
-import de.heoegbr.fdmusic.data.MusicConstants;
+import de.heoegbr.fdmusic2.data.FormationShape;
+import de.heoegbr.fdmusic2.data.LazyDatabase;
+import de.heoegbr.fdmusic2.data.MusicConstants;
 
 /**
  * Custom view for rendering shapes of a formation choreography.

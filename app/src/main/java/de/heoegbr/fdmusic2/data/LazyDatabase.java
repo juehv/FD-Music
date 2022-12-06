@@ -1,4 +1,4 @@
-package de.heoegbr.fdmusic.data;
+package de.heoegbr.fdmusic2.data;
 
 /**
  * Lazy in Memory database.

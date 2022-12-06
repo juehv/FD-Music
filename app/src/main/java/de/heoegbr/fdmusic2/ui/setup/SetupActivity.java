@@ -1,4 +1,4 @@
-package de.heoegbr.fdmusic.ui.setup;
+package de.heoegbr.fdmusic2.ui.setup;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -29,10 +29,10 @@ import java.util.HashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import de.heoegbr.fdmusic.BuildConfig;
-import de.heoegbr.fdmusic.R;
-import de.heoegbr.fdmusic.data.MusicConstants;
-import de.heoegbr.fdmusic.ui.MainActivity;
+import de.heoegbr.fdmusic2.BuildConfig;
+import de.heoegbr.fdmusic2.R;
+import de.heoegbr.fdmusic2.data.MusicConstants;
+import de.heoegbr.fdmusic2.ui.MainActivity;
 
 /**
  * Basic Setup Wizard

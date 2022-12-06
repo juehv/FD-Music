@@ -1,4 +1,4 @@
-package de.heoegbr.fdmusic.player;
+package de.heoegbr.fdmusic2.player;
 
 
 import android.app.Notification;
@@ -24,10 +24,10 @@ import androidx.lifecycle.MutableLiveData;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import de.heoegbr.fdmusic.R;
-import de.heoegbr.fdmusic.data.LazyDatabase;
-import de.heoegbr.fdmusic.data.MusicConstants;
-import de.heoegbr.fdmusic.ui.MainActivity;
+import de.heoegbr.fdmusic2.R;
+import de.heoegbr.fdmusic2.data.LazyDatabase;
+import de.heoegbr.fdmusic2.data.MusicConstants;
+import de.heoegbr.fdmusic2.ui.MainActivity;
 
 /**
  * Foreground service for managing system media player.
@@ -452,19 +452,19 @@ public class SoundService extends LifecycleService implements MediaPlayer.OnErro
         notificationIntent.setAction(MusicConstants.ACTION.MAIN_ACTION);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent,  PendingIntent.FLAG_IMMUTABLE);
 
         Intent lPauseIntent = new Intent(this, SoundService.class);
         lPauseIntent.setAction(MusicConstants.ACTION.PAUSE_ACTION);
-        PendingIntent lPendingPauseIntent = PendingIntent.getService(this, 0, lPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent lPendingPauseIntent = PendingIntent.getService(this, 0, lPauseIntent,  PendingIntent.FLAG_IMMUTABLE);
 
         Intent playIntent = new Intent(this, SoundService.class);
         playIntent.setAction(MusicConstants.ACTION.PLAY_ACTION);
-        PendingIntent lPendingPlayIntent = PendingIntent.getService(this, 0, playIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent lPendingPlayIntent = PendingIntent.getService(this, 0, playIntent,  PendingIntent.FLAG_IMMUTABLE);
 
         Intent lStopIntent = new Intent(this, SoundService.class);
         lStopIntent.setAction(MusicConstants.ACTION.STOP_ACTION);
-        PendingIntent lPendingStopIntent = PendingIntent.getService(this, 0, lStopIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent lPendingStopIntent = PendingIntent.getService(this, 0, lStopIntent,  PendingIntent.FLAG_IMMUTABLE);
 
         RemoteViews lRemoteViews = new RemoteViews(getPackageName(), R.layout.notification_player);
         lRemoteViews.setOnClickPendingIntent(R.id.ui_notification_close_button, lPendingStopIntent);

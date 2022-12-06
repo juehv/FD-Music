@@ -1,4 +1,4 @@
-package de.heoegbr.fdmusic.ui.imageplan;
+package de.heoegbr.fdmusic2.ui.imageplan;
 
 import android.app.Fragment;
 import android.os.Bundle;
@@ -9,7 +9,7 @@ import android.widget.Button;
 
 import androidx.annotation.NonNull;
 
-import de.heoegbr.fdmusic.R;
+import de.heoegbr.fdmusic2.R;
 
 /**
  *

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.heoegbr.fdmusic">
+    package="de.heoegbr.fdmusic2">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -15,8 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FDMusic">
-        <activity android:name=".ui.setup.SetupActivity"></activity>
-        <activity android:name=".ui.MainActivity">
+        <activity android:name="de.heoegbr.fdmusic2.ui.setup.SetupActivity"></activity>
+        <activity android:name="de.heoegbr.fdmusic2.ui.MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,7 +26,7 @@
         </activity>
 
         <service
-            android:name=".player.SoundService"
+            android:name="de.heoegbr.fdmusic2.player.SoundService"
             android:exported="false" />
     </application>
 

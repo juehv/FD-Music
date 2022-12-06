@@ -1,4 +1,4 @@
-package de.heoegbr.fdmusic;
+package de.heoegbr.fdmusic2;
 
 import org.junit.Test;
 

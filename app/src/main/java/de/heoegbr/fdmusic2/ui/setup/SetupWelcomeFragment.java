@@ -1,4 +1,4 @@
-package de.heoegbr.fdmusic.ui.setup;
+package de.heoegbr.fdmusic2.ui.setup;
 
 import android.os.Bundle;
 import android.text.Editable;
@@ -17,8 +17,8 @@ import androidx.fragment.app.Fragment;
 
 import org.jetbrains.annotations.NotNull;
 
-import de.heoegbr.fdmusic.R;
-import de.heoegbr.fdmusic.data.MusicConstants;
+import de.heoegbr.fdmusic2.R;
+import de.heoegbr.fdmusic2.data.MusicConstants;
 import io.noties.markwon.Markwon;
 
 /**

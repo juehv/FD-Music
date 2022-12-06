@@ -1,4 +1,4 @@
-package de.heoegbr.fdmusic.data;
+package de.heoegbr.fdmusic2.data;
 
 /**
  * Container for an entry point in the music file
